@@ -1,46 +1,23 @@
-import React from 'react';
-import CardNav from './components/CardNav';
-import logo from './assets/react.svg';
+import Navbar from "./components/Navbar";
+// import { GridScan } from "./components/GridScan";
+// import Threads from "./components/Threads";
 
-interface NavLink {
-  label: string;
-  ariaLabel: string;
-  href: string;
-}
-
-interface NavItem {
-  label: string;
-  bgColor: string;
-  textColor: string;
-  links: NavLink[];
-}
+import Galaxy from "./components/Galaxy";
 
 const App: React.FC = () => {
-  const items: NavItem[] = [
-    {
-      label: "Contact",
-      bgColor: "#000", 
-      textColor: "#fff",
-      links: [
-        { label: "Email", ariaLabel: "Email us", href: "mailto:info@example.com" },
-        { label: "Twitter", ariaLabel: "Twitter", href: "https://twitter.com/YourHandle" },
-        { label: "LinkedIn", ariaLabel: "LinkedIn", href: "https://www.linkedin.com/company/your-company" }
-      ]
-    }
-  ];
 
   return (
-    <CardNav
-      logo={logo}
-      logoAlt="Company Logo"
-      items={items}
-      baseColor="#fff"
-      menuColor="#000"
-      buttonBgColor="#111"
-      buttonTextColor="#fff"
-      ease="power3.out"
-    />
+    <>
+    <Navbar />
+    <div className="w-screen h-screen" style={{  position: 'fixed' }}>
+      {/* <GridScan /> */}
+      {/* <Threads /> */}
+      <Galaxy 
+     
+      />
+    </div>
+    </>
   );
-};
+};  
 
 export default App;
