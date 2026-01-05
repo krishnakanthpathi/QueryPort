@@ -3,12 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from './Toast';
 import { Mail, Lock, LogIn } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { login, isLoading } = useAuth();
+    const { login, googleLogin, isLoading } = useAuth();
     const navigate = useNavigate();
     const { showToast } = useToast();
 
@@ -19,7 +20,7 @@ const Login: React.FC = () => {
             await login(email, password);
             showToast('Welcome back! Login successful.', 'success');
             navigate('/');
-        } catch (err) {
+        } catch {
             setError('Failed to login. Please check your credentials.');
             showToast('Login failed. Please try again.', 'error');
         }
@@ -76,7 +77,39 @@ const Login: React.FC = () => {
                     </button>
                 </form>
 
-                <p className="mt-6 text-center text-gray-400 text-sm">
+                <div className="mt-6">
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-white/10"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-black text-gray-400">Or continue with</span>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-center">
+                        <GoogleLogin
+                            onSuccess={async (credentialResponse) => {
+                                if (credentialResponse.credential) {
+                                    try {
+                                        await googleLogin(credentialResponse.credential);
+                                        showToast('Login successful!', 'success');
+                                        navigate('/');
+                                    } catch {
+                                        showToast('Google login failed.', 'error');
+                                    }
+                                }
+                            }}
+                            onError={() => {
+                                showToast('Google login failed.', 'error');
+                            }}
+                            theme="filled_black"
+                            shape="pill"
+                        />
+                    </div>
+                </div>
+
+                <p className="mt-8 text-center text-gray-400 text-sm">
                     Don't have an account?{' '}
                     <Link to="/register" className="text-white hover:text-gray-300 font-medium transition-colors underline decoration-dotted">
                         Sign up

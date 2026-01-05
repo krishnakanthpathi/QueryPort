@@ -22,40 +22,40 @@ const Profile: React.FC = () => {
         socialLinks: [] as { platform: string; url: string }[],
     });
 
-    const fetchProfile = async () => {
-        try {
-            setLoading(true);
-            const data = await api.get('/profile/me');
-            setProfile(data.data.profile);
-
-            // Initialize form data
-            if (data.data.profile) {
-                setFormData({
-                    bio: data.data.profile.bio || '',
-                    title: data.data.profile.title || '',
-                    locations: data.data.profile.locations || '',
-                    resume: data.data.profile.resume || '',
-                    avatar: user?.avatar || '',
-                    socialLinks: data.data.profile.socialLinks || [],
-                });
-            }
-        } catch (err: any) {
-            // If 404, it just means no profile created yet, but we should still enable editing for user fields if we want?
-            // Actually, if 404, we might not have a profile doc, but we have a user doc.
-            // For now, if 404, we leave defaults.
-            if (!err.message?.includes('404')) {
-                console.error('Error fetching profile:', err);
-            }
-            // Ensure avatar defaults to current user avatar if profile fetch fails or is 404
-            setFormData(prev => ({ ...prev, avatar: user?.avatar || '' }));
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                setLoading(true);
+                const data = await api.get('/profile/me');
+                setProfile(data.data.profile);
+
+                // Initialize form data
+                if (data.data.profile) {
+                    setFormData({
+                        bio: data.data.profile.bio || '',
+                        title: data.data.profile.title || '',
+                        locations: data.data.profile.locations || '',
+                        resume: data.data.profile.resume || '',
+                        avatar: user?.avatar || '',
+                        socialLinks: data.data.profile.socialLinks || [],
+                    });
+                }
+            } catch (err: unknown) {
+                // If 404, it just means no profile created yet, but we should still enable editing for user fields if we want?
+                // Actually, if 404, we might not have a profile doc, but we have a user doc.
+                // For now, if 404, we leave defaults.
+                if (err instanceof Error && !err.message?.includes('404')) {
+                    console.error('Error fetching profile:', err);
+                }
+                // Ensure avatar defaults to current user avatar if profile fetch fails or is 404
+                setFormData(prev => ({ ...prev, avatar: user?.avatar || '' }));
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchProfile();
-    }, []);
+    }, [user]);
 
     const handleSave = async () => {
         try {
@@ -107,8 +107,8 @@ const Profile: React.FC = () => {
             }
 
             setIsEditing(false);
-        } catch (err: any) {
-            setError(err.message || 'Failed to update profile');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to update profile');
         } finally {
             setLoading(false);
         }
@@ -147,7 +147,7 @@ const Profile: React.FC = () => {
                             <img
                                 src={formData.avatar || user?.avatar || DEFAULT_AVATAR_URL}
                                 alt="Avatar"
-                                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-300"
+                                className="w-full h-full object-cover transition-all duration-300"
                             />
                         </div>
                     </div>
@@ -156,7 +156,7 @@ const Profile: React.FC = () => {
                         <div className="flex flex-col md:flex-row justify-between items-center mb-4">
                             <div>
                                 <h1 className="text-3xl font-bold">{user?.name}</h1>
-                                <p className="text-gray-400">@{user ? (user as any).username : 'username'}</p>
+                                <p className="text-gray-400">@{user ? user.username : 'username'}</p>
                             </div>
                             {!isEditing && (
                                 <button

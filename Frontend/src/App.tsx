@@ -7,6 +7,7 @@ import Profile from "./components/Profile";
 import { useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toast";
 import { DEFAULT_AVATAR_URL } from "./constants";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
@@ -46,15 +47,17 @@ const App: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <ToastProvider>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
-        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
-        <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
-      </Routes>
-    </ToastProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
+      <ToastProvider>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
+          <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+          <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
+        </Routes>
+      </ToastProvider>
+    </GoogleOAuthProvider>
   );
 };
 

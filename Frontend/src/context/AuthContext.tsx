@@ -9,6 +9,7 @@ interface AuthContextType {
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
     register: (name: string, username: string, email: string, password: string) => Promise<void>;
+    googleLogin: (credential: string) => Promise<void>;
     logout: () => void;
 }
 
@@ -88,6 +89,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    const googleLogin = async (credential: string) => {
+        setIsLoading(true);
+        try {
+            const response = await api.post('/auth/google', { credential });
+            const { token, data } = response;
+            const userData = data?.user;
+
+            if (!userData) throw new Error("User data not found");
+
+            if (!userData.avatar) userData.avatar = DEFAULT_AVATAR_URL;
+
+            setUser(userData);
+            localStorage.setItem('talentlayer_token', token);
+            localStorage.setItem('talentlayer_user', JSON.stringify(userData));
+        } catch (error) {
+            console.error(error);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const logout = () => {
         setUser(null);
         localStorage.removeItem('talentlayer_user');
@@ -95,7 +118,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, googleLogin, logout }}>
             {children}
         </AuthContext.Provider>
     );

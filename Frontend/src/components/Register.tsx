@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from './Toast';
 import { User, Mail, Lock, UserPlus } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Register: React.FC = () => {
     const [name, setName] = useState('');
@@ -11,7 +12,7 @@ const Register: React.FC = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
-    const { register, isLoading } = useAuth();
+    const { register, googleLogin, isLoading } = useAuth();
     const navigate = useNavigate();
     const { showToast } = useToast();
 
@@ -25,7 +26,7 @@ const Register: React.FC = () => {
             await register(name, username, email, password);
             showToast('Account created successfully!', 'success');
             navigate('/');
-        } catch (err) {
+        } catch {
             setError('Failed to create account. Username or Email may already be taken.');
             showToast('Registration failed.', 'error');
         }
@@ -124,7 +125,39 @@ const Register: React.FC = () => {
                     </button>
                 </form>
 
-                <p className="mt-6 text-center text-gray-400 text-sm">
+                <div className="mt-6">
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-white/10"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-black text-gray-400">Or sign up with</span>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-center">
+                        <GoogleLogin
+                            onSuccess={async (credentialResponse) => {
+                                if (credentialResponse.credential) {
+                                    try {
+                                        await googleLogin(credentialResponse.credential);
+                                        showToast('Account created successfully!', 'success');
+                                        navigate('/');
+                                    } catch {
+                                        showToast('Google signup failed.', 'error');
+                                    }
+                                }
+                            }}
+                            onError={() => {
+                                showToast('Google signup failed.', 'error');
+                            }}
+                            theme="filled_black"
+                            shape="pill"
+                        />
+                    </div>
+                </div>
+
+                <p className="mt-8 text-center text-gray-400 text-sm">
                     Already have an account?{' '}
                     <Link to="/login" className="text-white hover:text-gray-300 font-medium transition-colors underline decoration-dotted">
                         Sign in
