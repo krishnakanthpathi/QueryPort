@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import AppError from './utils/AppError.js';
+import authRoutes from './routes/authRoutes.js';
 import globalErrorHandler from './controllers/errorController.js';
 
 dotenv.config();
@@ -14,6 +15,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Routes
+app.use('/api/v1/auth', authRoutes);
 
 // Sample route
 app.get('/', (req, res) => {
