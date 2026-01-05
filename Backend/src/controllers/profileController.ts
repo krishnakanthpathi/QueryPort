@@ -70,13 +70,18 @@ export const updateProfile = catchAsync(async (req: Request, res: Response, next
 
     // Build profile object
     const profileFields: any = {};
-    const { bio, title, socialLinks, resume, locations } = req.body;
+    const { bio, title, socialLinks, resume, locations, avatar } = req.body;
 
     if (bio) profileFields.bio = bio;
     if (title) profileFields.title = title;
     if (resume) profileFields.resume = resume;
     if (locations) profileFields.locations = locations;
     if (socialLinks) profileFields.socialLinks = socialLinks;
+
+    // Update User Avatar if provided
+    if (avatar) {
+        await User.findByIdAndUpdate(userId, { avatar });
+    }
 
     let profile = await Profile.findOne({ user: userId } as any);
 

@@ -1,19 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { api } from '../lib/api';
-
-
-interface User {
-    id: string;
-    name: string;
-    email: string;
-}
+import type { User } from '../types';
+import { DEFAULT_AVATAR_URL } from '../constants';
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    register: (name: string, email: string, password: string) => Promise<void>;
+    register: (name: string, username: string, email: string, password: string) => Promise<void>;
     logout: () => void;
 }
 
@@ -28,7 +23,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const storedUser = localStorage.getItem('talentlayer_user');
         if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
-                setUser(JSON.parse(storedUser));
+                const parsedUser = JSON.parse(storedUser);
+                if (!parsedUser.avatar) {
+                    parsedUser.avatar = DEFAULT_AVATAR_URL;
+                }
+                setUser(parsedUser);
             } catch (e) {
                 console.error('Failed to parse user from local storage:', e);
                 localStorage.removeItem('talentlayer_user');
@@ -40,8 +39,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const data = await api.post('/auth/login', { email, password });
-            const { token, user: userData } = data;
+            const response = await api.post('/auth/login', { email, password });
+            const { token, data } = response;
+            const userData = data?.user;
+
+            if (!userData) {
+                throw new Error("User data not found in response");
+            }
+
+            if (!userData.avatar) {
+                userData.avatar = DEFAULT_AVATAR_URL;
+            }
 
             setUser(userData);
             localStorage.setItem('talentlayer_token', token);
@@ -54,11 +62,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const register = async (name: string, email: string, password: string) => {
+    const register = async (name: string, username: string, email: string, password: string) => {
         setIsLoading(true);
         try {
-            const data = await api.post('/auth/signup', { name, email, password });
-            const { token, user: userData } = data;
+            const response = await api.post('/auth/signup', { name, username, email, password });
+            const { token, data } = response;
+            const userData = data?.user;
+
+            if (!userData) {
+                throw new Error("User data not found in response");
+            }
+
+            if (!userData.avatar) {
+                userData.avatar = DEFAULT_AVATAR_URL;
+            }
 
             setUser(userData);
             localStorage.setItem('talentlayer_token', token);

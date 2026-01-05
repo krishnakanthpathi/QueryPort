@@ -5,18 +5,48 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Profile from "./components/Profile";
 import { useAuth } from "./context/AuthContext";
+import { ToastProvider } from "./components/Toast";
+import { DEFAULT_AVATAR_URL } from "./constants";
 
-const Home = () => (
-  <div className="w-screen h-screen" style={{ position: 'fixed' }}>
-    <Galaxy />
-  </div>
-);
+const Home = () => {
+  const { user, isAuthenticated } = useAuth();
+
+  return (
+    <div className="w-screen h-screen relative overflow-hidden bg-black">
+      <div className="absolute inset-0 z-0">
+        <Galaxy />
+      </div>
+
+      {isAuthenticated && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center animate-in fade-in zoom-in duration-1000">
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1 border-2 border-white/20 mb-6 shadow-2xl backdrop-blur-sm">
+              <div className="w-full h-full rounded-full overflow-hidden">
+                <img
+                  src={user?.avatar || DEFAULT_AVATAR_URL}
+                  alt={user?.name}
+                  className="w-full h-full object-cover grayscale opacity-90"
+                />
+              </div>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-widest uppercase text-center drop-shadow-2xl">
+              Welcome Back
+            </h1>
+            <p className="mt-4 text-xl text-gray-400 font-light tracking-widest uppercase">
+              {user?.name}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <>
+    <ToastProvider>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -24,7 +54,7 @@ const App: React.FC = () => {
         <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
         <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
       </Routes>
-    </>
+    </ToastProvider>
   );
 };
 
