@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentLayer Auth Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #output {
+            background: #f4f4f4;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>TalentLayer API Test</h1>
+
+    <div class="container">
+        <!-- Signup -->
+        <div class="box">
+            <h2>Signup</h2>
+            <form id="signupForm">
+                <input type="text" id="signupName" placeholder="Name" required>
+                <input type="email" id="signupEmail" placeholder="Email" required>
+                <input type="password" id="signupPassword" placeholder="Password" required>
+                <button type="submit">Signup</button>
+            </form>
+        </div>
+
+        <!-- Login -->
+        <div class="box">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        <!-- Google Auth -->
+        <div class="box">
+            <h2>Google Auth</h2>
+            <form id="googleForm">
+                <input type="text" id="googleCredential" placeholder="Paste Google ID Token (Credential)" required>
+                <button type="submit" style="background-color: #db4437;">Login with Google</button>
+            </form>
+            <p><small>Get a test token via <a href="https://developers.google.com/oauthplayground" target="_blank">OAuth
+                        Playground</a> or your client app.</small></p>
+        </div>
+        <!-- Google Auth -->
+        <div class="box">
+            <h2>Google Auth</h2>
+            <div id="googleBtnContainer" style="min-height: 40px;"></div>
+        </div>
+    </div>
+
+    <!-- Google Identity Services Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <div class="box">
+        <h2>Test Protected Route</h2>
+        <p>Current Token: <span id="tokenStatus">None</span></p>
+        <button id="testProtectedBtn">Call /api/v1/auth/protect (Mock)</button>
+        <p><small>* Note: "protect" endpoint is just middleware, so we can't call it directly as a route. Typically
+                you'd call a protected resource like /profile.</small></p>
+    </div>
+    </div>
+
+    <h3>Output</h3>
+    <div id="output">Results will appear here...</div>
+
+    <script>
+        let authToken = null;
+        const API_URL = 'http://localhost:8888/api/v1/auth';
+
+        const log = (data) => {
+            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        };
+
+        const setToken = (token) => {
+            authToken = token;
+            document.getElementById('tokenStatus').textContent = token ? 'Set (Ready to use)' : 'None';
+            document.getElementById('tokenStatus').style.color = token ? 'green' : 'red';
+        };
+
+        // Initialize Google Button
+        window.onload = async () => {
+            try {
+                const res = await fetch(`${API_URL}/config`);
+                const config = await res.json();
+
+                if (config.clientId) {
+                    google.accounts.id.initialize({
+                        client_id: config.clientId,
+                        callback: handleGoogleCallback,
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+                    google.accounts.id.renderButton(
+                        document.getElementById("googleBtnContainer"),
+                        { theme: "outline", size: "large", width: "100%" }
+                    );
+                } else {
+                    document.getElementById("googleBtnContainer").textContent = 'Error: GOOGLE_CLIENT_ID missing in backend .env';
+                }
+            } catch (err) {
+                console.error('Failed to load Google Config:', err);
+            }
+        };
+
+        // Google Callback
+        async function handleGoogleCallback(response) {
+            try {
+                const res = await fetch(`${API_URL}/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: response.credential })
+                });
+                const data = await res.json();
+                log(data);
+                if (data.token) setToken(data.token);
+            } catch (err) {
+                log({ error: err.message });
+            }
+        }
+
+        // Signup
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+
+            try {
+                const res = await fetch(`${API_URL}/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                log(data);
+                if (data.token) setToken(data.token);
+            } catch (err) {
+                log({ error: err.message });
+            }
+        });
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                log(data);
+                if (data.token) setToken(data.token);
+            } catch (err) {
+                log({ error: err.message });
+            }
+        });
+
+        // Google Auth
+        document.getElementById('googleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const credential = document.getElementById('googleCredential').value;
+
+            try {
+                const res = await fetch(`${API_URL}/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential })
+                });
+                const data = await res.json();
+                log(data);
+                if (data.token) setToken(data.token);
+            } catch (err) {
+                log({ error: err.message });
+            }
+        });
+
+        // Test Protected (simulated)
+        // Since we don't have a dedicated "test protected" endpoint yet, 
+        // we will assume if the user has a token, they can implement logic later.
+        document.getElementById('testProtectedBtn').addEventListener('click', async () => {
+            if (!authToken) {
+                log({ message: 'No token found! Please Login first.' });
+                return;
+            }
+            log({ message: 'Token is present! You can use this token in Authorization header: Bearer ' + authToken });
+        });
+    </script>
+</body>
+
+</html>
