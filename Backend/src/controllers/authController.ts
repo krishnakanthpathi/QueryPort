@@ -35,6 +35,7 @@ const createSendToken = (user: any, statusCode: number, res: Response) => {
 export const signup = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const newUser = await User.create({
         name: req.body.name,
+        username: req.body.username,
         email: req.body.email,
         password: req.body.password,
         avatar: req.body.avatar,
@@ -81,8 +82,14 @@ export const googleAuth = catchAsync(async (req: Request, res: Response, next: N
     let user = await User.findOne({ email: payload.email });
 
     if (!user) {
+        // Generate random username: name-slug + random-4-digits
+        const baseName = (payload.name || 'user').toLowerCase().replace(/\s+/g, '');
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const generatedUsername = `${baseName}${randomSuffix}`;
+
         user = await User.create({
             name: payload.name || 'User',
+            username: generatedUsername,
             email: payload.email,
             googleId: payload.sub,
             avatar: payload.picture || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',

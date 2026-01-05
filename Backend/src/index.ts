@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import AppError from './utils/AppError.js';
-import authRoutes from './routes/authRoutes.js';
+import routes from './routes/index.js';
 import globalErrorHandler from './controllers/errorController.js';
 
 dotenv.config();
@@ -17,15 +17,12 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1', routes);
 
 // Sample route
 app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
-
-
-
 
 // Handle unhandled routes
 app.use((req, res, next) => {
