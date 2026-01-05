@@ -11,13 +11,13 @@ This document outlines the development roadmap for **TalentLayer**, a headless p
 - [x] **Database Setup**:
     - [x] Database: **MongoDB** (Selected).
     - [x] Setup Connection: **Mongoose**.
-- [ ] **Project Structure**:
-    - [ ] **Folders**: `controllers`, `models`, `routes`, `middlewares`, `utils`, `types`.
-    - [ ] **MVC Pattern**: Setup Separation of Concerns.
-- [ ] **API Structure**:
-    - [ ] **Response Format**: JSend Standard `{ status: 'success' | 'fail' | 'error', data: ... }`.
-    - [ ] **Error Handling**: Global Error Handler Middleware + `AppError` class.
-    - [ ] **Async Wrapper**: `catchAsync` to avoid try-catch blocks in controllers.
+- [x] **Project Structure**:
+    - [x] **Folders**: `controllers`, `models`, `routes`, `middlewares`, `utils`, `types`.
+    - [x] **MVC Pattern**: Setup Separation of Concerns.
+- [x] **API Structure**:
+    - [x] **Response Format**: JSend Standard `{ status: 'success' | 'fail' | 'error', data: ... }`.
+    - [x] **Error Handling**: Global Error Handler Middleware + `AppError` class.
+    - [x] **Async Wrapper**: `catchAsync` to avoid try-catch blocks in controllers.
 
 ## 🛠 Phase 2: Core Backend (The "Headless" Engine)
 **Goal**: Build the API that serves user data.
