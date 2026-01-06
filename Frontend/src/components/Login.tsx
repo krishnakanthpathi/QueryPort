@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from './Toast';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Lock, LogIn, User } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 
 const Login: React.FC = () => {
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { login, googleLogin, isLoading } = useAuth();
@@ -17,7 +17,7 @@ const Login: React.FC = () => {
         e.preventDefault();
         setError('');
         try {
-            await login(email, password);
+            await login(identifier, password);
             showToast('Welcome back! Login successful.', 'success');
             navigate('/');
         } catch {
@@ -41,15 +41,15 @@ const Login: React.FC = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Email or Username</label>
                         <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                             <input
-                                type="email"
+                                type="text"
                                 className="w-full bg-black border border-white/20 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-white transition-colors"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Email or Username"
+                                value={identifier}
+                                onChange={(e) => setIdentifier(e.target.value)}
                                 required
                             />
                         </div>
