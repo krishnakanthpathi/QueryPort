@@ -31,7 +31,7 @@ export const getProfileByUsername = catchAsync(async (req: Request, res: Respons
 // Public: Get Profile by User ID
 export const getUserProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.params;
-    const profile = await Profile.findOne({ user: userId } as any).populate('user', 'name email avatar');
+    const profile = await Profile.findOne({ user: userId } as any).populate('user', 'name email avatar username');
 
     if (!profile) {
         return next(new AppError('Profile not found', 404));
@@ -49,7 +49,7 @@ export const getUserProfile = catchAsync(async (req: Request, res: Response, nex
 export const getMyProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     // @ts-ignore
     const userId = req.user.id;
-    const profile = await Profile.findOne({ user: userId } as any).populate('user', 'name email avatar');
+    const profile = await Profile.findOne({ user: userId } as any).populate('user', 'name email avatar username');
 
     if (!profile) {
         return next(new AppError('Profile not found', 404));

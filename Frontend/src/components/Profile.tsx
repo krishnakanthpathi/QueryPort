@@ -31,13 +31,14 @@ const Profile: React.FC = () => {
 
                 // Initialize form data
                 if (data.data.profile) {
+                    const profileData = data.data.profile;
                     setFormData({
-                        bio: data.data.profile.bio || '',
-                        title: data.data.profile.title || '',
-                        locations: data.data.profile.locations || '',
-                        resume: data.data.profile.resume || '',
-                        avatar: user?.avatar || '',
-                        socialLinks: data.data.profile.socialLinks || [],
+                        bio: profileData.bio || '',
+                        title: profileData.title || '',
+                        locations: profileData.locations || '',
+                        resume: profileData.resume || '',
+                        avatar: profileData.user?.avatar || user?.avatar || '',
+                        socialLinks: profileData.socialLinks || [],
                     });
                 }
             } catch (err: unknown) {
@@ -60,18 +61,7 @@ const Profile: React.FC = () => {
     const handleSave = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('talentlayer_token');
-            const response = await fetch('http://localhost:8888/api/v1/profile/me', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify(formData),
-            });
-
-            const responseData = await response.json();
-            if (!response.ok) throw new Error(responseData.message);
+            const responseData = await api.patch('/profile/me', formData);
 
             const updatedProfile = responseData.data.profile;
             setProfile(updatedProfile);
@@ -148,6 +138,11 @@ const Profile: React.FC = () => {
                                 src={formData.avatar || user?.avatar || DEFAULT_AVATAR_URL}
                                 alt="Avatar"
                                 className="w-full h-full object-cover transition-all duration-300"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = DEFAULT_AVATAR_URL;
+                                }}
                             />
                         </div>
                     </div>
@@ -157,6 +152,7 @@ const Profile: React.FC = () => {
                             <div>
                                 <h1 className="text-3xl font-bold">{user?.name}</h1>
                                 <p className="text-gray-400">@{user ? user.username : 'username'}</p>
+                                <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
                             </div>
                             {!isEditing && (
                                 <button
