@@ -45,23 +45,7 @@ export const getUserProfile = catchAsync(async (req: Request, res: Response, nex
     });
 });
 
-// Protected: Get My Profile (Convenience)
-export const getMyProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    // @ts-ignore
-    const userId = req.user.id;
-    const profile = await Profile.findOne({ user: userId } as any).populate('user', 'name email avatar username');
 
-    if (!profile) {
-        return next(new AppError('Profile not found', 404));
-    }
-
-    res.status(200).json({
-        status: 'success',
-        data: {
-            profile,
-        },
-    });
-});
 
 // Protected: Update My Profile
 export const updateProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
