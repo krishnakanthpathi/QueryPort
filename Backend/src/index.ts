@@ -21,7 +21,9 @@ app.use('/api/v1', routes);
 
 // Sample route
 app.get('/', (req, res) => {
-  res.send('Hello, World!');
+  // welcome route
+  res.send(JSON.stringify({ message: 'Welcome to the API' }));
+
 });
 
 // Handle unhandled routes
