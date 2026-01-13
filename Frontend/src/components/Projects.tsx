@@ -19,6 +19,18 @@ interface Project {
     category?: 'personal' | 'professional' | 'others';
     links?: string[];
     tags?: string[];
+    tagline?: string;
+    skills?: string;
+    images?: string[];
+    avatar?: string;
+    startDate?: string; // Date string
+    endDate?: string; // Date string
+    budget?: number;
+    contributors?: string[];
+    views?: number;
+    likes?: number;
+    comments?: number;
+    shares?: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -38,13 +50,23 @@ const Projects: React.FC = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        tagline: '',
+        skills: '',
         status: 'published',
         category: 'personal',
         links: [] as string[],
         tags: [] as string[],
+        images: [] as string[],
+        avatar: '',
+        startDate: '',
+        endDate: '',
+        budget: 0,
+        contributors: [] as string[],
     });
     const [newLink, setNewLink] = useState('');
     const [newTag, setNewTag] = useState('');
+    const [newImage, setNewImage] = useState('');
+    const [newContributor, setNewContributor] = useState('');
 
     const fetchProjects = async () => {
         try {
@@ -67,13 +89,23 @@ const Projects: React.FC = () => {
         setFormData({
             title: '',
             description: '',
+            tagline: '',
+            skills: '',
             status: 'published',
             category: 'personal',
             links: [],
             tags: [],
+            images: [],
+            avatar: '',
+            startDate: '',
+            endDate: '',
+            budget: 0,
+            contributors: [],
         });
         setNewLink('');
         setNewTag('');
+        setNewImage('');
+        setNewContributor('');
         setIsEditing(false);
         setCurrentProjectId(null);
     };
@@ -87,10 +119,18 @@ const Projects: React.FC = () => {
         setFormData({
             title: project.title,
             description: project.description,
+            tagline: project.tagline || '',
+            skills: project.skills || '',
             status: project.status as string,
             category: project.category || 'personal',
             links: project.links || [],
             tags: project.tags || [],
+            images: project.images || [],
+            avatar: project.avatar || '',
+            startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
+            endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+            budget: project.budget || 0,
+            contributors: project.contributors || [],
         });
         setIsEditing(true);
         setCurrentProjectId(project._id);
@@ -149,6 +189,26 @@ const Projects: React.FC = () => {
     };
     const removeTag = (tag: string) => {
         setFormData({ ...formData, tags: formData.tags.filter(t => t !== tag) });
+    };
+
+    const addImage = () => {
+        if (newImage && !formData.images.includes(newImage)) {
+            setFormData({ ...formData, images: [...formData.images, newImage] });
+            setNewImage('');
+        }
+    };
+    const removeImage = (img: string) => {
+        setFormData({ ...formData, images: formData.images.filter(i => i !== img) });
+    };
+
+    const addContributor = () => {
+        if (newContributor && !formData.contributors.includes(newContributor)) {
+            setFormData({ ...formData, contributors: [...formData.contributors, newContributor] });
+            setNewContributor('');
+        }
+    };
+    const removeContributor = (contributor: string) => {
+        setFormData({ ...formData, contributors: formData.contributors.filter(c => c !== contributor) });
     };
 
     // Check if user is owner safely
@@ -279,6 +339,16 @@ const Projects: React.FC = () => {
                                     />
                                 </div>
 
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-1">Tagline</label>
+                                    <input
+                                        value={formData.tagline}
+                                        onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
+                                        placeholder="Short catchy tagline"
+                                    />
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm text-gray-400 mb-1">Status</label>
@@ -305,6 +375,48 @@ const Projects: React.FC = () => {
                                     </div>
                                 </div>
 
+                                {/* Skills */}
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-1">Skills (comma separated)</label>
+                                    <input
+                                        value={formData.skills}
+                                        onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
+                                        placeholder="React, Node.js, AI..."
+                                    />
+                                </div>
+
+                                {/* Dates and Budget */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-400 mb-1">Start Date</label>
+                                        <input
+                                            type="date"
+                                            value={formData.startDate}
+                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-400 mb-1">End Date</label>
+                                        <input
+                                            type="date"
+                                            value={formData.endDate}
+                                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-400 mb-1">Budget ($)</label>
+                                        <input
+                                            type="number"
+                                            value={formData.budget}
+                                            onChange={(e) => setFormData({ ...formData, budget: Number(e.target.value) })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
+                                        />
+                                    </div>
+                                </div>
+
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">Description</label>
                                     <textarea
@@ -313,6 +425,16 @@ const Projects: React.FC = () => {
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
                                         placeholder="Describe your project..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-1">Project Avatar URL</label>
+                                    <input
+                                        value={formData.avatar}
+                                        onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
+                                        placeholder="https://..."
                                     />
                                 </div>
 
@@ -334,6 +456,54 @@ const Projects: React.FC = () => {
                                             <span key={i} className="flex items-center gap-1 bg-blue-500/20 text-blue-200 border border-blue-500/30 px-3 py-1 rounded-full text-sm">
                                                 {tag}
                                                 <button onClick={() => removeTag(tag)} className="hover:text-white"><X size={12} /></button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Images Input */}
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-1">Project Images (URLs)</label>
+                                    <div className="flex gap-2 mb-2">
+                                        <input
+                                            value={newImage}
+                                            onChange={(e) => setNewImage(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && addImage()}
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
+                                            placeholder="https://..."
+                                        />
+                                        <button onClick={addImage} className="bg-white/10 hover:bg-white/20 px-4 rounded-lg font-medium transition-colors">Add</button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {formData.images.map((img, i) => (
+                                            <div key={i} className="flex items-center justify-between bg-white/5 p-2 rounded-lg text-sm text-gray-300">
+                                                <div className="flex items-center gap-2 truncate">
+                                                    <span className="truncate max-w-[300px]">{img}</span>
+                                                </div>
+                                                <button onClick={() => removeImage(img)} className="hover:text-white p-1"><X size={14} /></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Contributors Input */}
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-1">Contributors</label>
+                                    <div className="flex gap-2 mb-2">
+                                        <input
+                                            value={newContributor}
+                                            onChange={(e) => setNewContributor(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && addContributor()}
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
+                                            placeholder="Contributor Name"
+                                        />
+                                        <button onClick={addContributor} className="bg-white/10 hover:bg-white/20 px-4 rounded-lg font-medium transition-colors">Add</button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {formData.contributors.map((contributor, i) => (
+                                            <span key={i} className="flex items-center gap-1 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3 py-1 rounded-full text-sm">
+                                                {contributor}
+                                                <button onClick={() => removeContributor(contributor)} className="hover:text-white"><X size={12} /></button>
                                             </span>
                                         ))}
                                     </div>
