@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
-import { ArrowLeft, Calendar, Globe, User, DollarSign, Clock, Layers, FileText, Folder, ThumbsUp, Eye } from 'lucide-react';
+import { ArrowLeft, Calendar, Globe, User, DollarSign, Clock, Layers, FileText, Folder, ThumbsUp, Eye, Edit2, Trash2 } from 'lucide-react';
 import { DEFAULT_AVATAR_URL } from '../constants';
+import { useAuth } from '../context/AuthContext';
+import ProjectModal from './ProjectModal';
 
 interface Project {
     _id: string;
@@ -36,26 +38,45 @@ interface Project {
 
 const ProjectView: React.FC = () => {
     const { projectId } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const [project, setProject] = useState<Project | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const fetchProject = async () => {
+        try {
+            const data = await api.get(`/projects/id/${projectId}`);
+            setProject(data.data.project);
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch project');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchProject = async () => {
-            try {
-                const data = await api.get(`/projects/id/${projectId}`);
-                setProject(data.data.project);
-            } catch (err: any) {
-                setError(err.message || 'Failed to fetch project');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (projectId) {
             fetchProject();
         }
     }, [projectId]);
+
+    const isOwner = () => {
+        if (!user || !project || !project.userId) return false;
+        const projectUserId = typeof project.userId === 'string' ? project.userId : project.userId._id;
+        return projectUserId === user._id || projectUserId === user.id;
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm("Are you sure you want to delete this project?")) return;
+        try {
+            await api.delete(`/projects/id/${projectId}`);
+            navigate('/projects');
+        } catch (err: any) {
+            alert(err.message || 'Failed to delete project');
+        }
+    }
 
     if (loading) return <div className="min-h-screen pt-32 text-center text-white">Loading...</div>;
     if (error || !project) return <div className="min-h-screen pt-32 text-center text-red-500">{error || 'Project not found'}</div>;
@@ -64,12 +85,31 @@ const ProjectView: React.FC = () => {
     const ownerAvatar = typeof project.userId !== 'string' && project.userId.avatar ? project.userId.avatar : DEFAULT_AVATAR_URL;
 
     return (
-        <div className="min-h-screen pt-24 pb-12 bg-black text-white px-4 relative overflow-hidden overflow-y-auto w-full">
+        <div className="min-h-screen pt-32 pb-12 bg-black text-white px-4 relative overflow-hidden overflow-y-auto w-full">
             <div className="max-w-5xl mx-auto relative z-10">
-                <Link to="/projects" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
-                    <ArrowLeft size={20} />
-                    Back to Projects
-                </Link>
+                <div className="flex justify-between items-start mb-8">
+                    <Link to="/projects" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                        <ArrowLeft size={20} />
+                        Back to Projects
+                    </Link>
+
+                    {isOwner() && (
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors font-medium"
+                            >
+                                <Edit2 size={16} /> <span className="hidden sm:inline">Edit</span>
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors font-medium"
+                            >
+                                <Trash2 size={16} /> <span className="hidden sm:inline">Delete</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
 
                 {/* Hero Section */}
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-8 relative overflow-hidden shadow-2xl">
@@ -222,6 +262,13 @@ const ProjectView: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <ProjectModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={fetchProject}
+                project={project}
+            />
         </div>
     );
 };
