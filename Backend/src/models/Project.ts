@@ -18,6 +18,9 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    tagline: {
+        type: String,
+    },
     skills: {
         type: String
     },

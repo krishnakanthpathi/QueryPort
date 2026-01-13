@@ -1,33 +1,26 @@
-
 import express from "express";
+import {
+    createProject,
+    getAllProjects,
+    getProjectById,
+    updateProject,
+    deleteProject,
+    getMyProjects
+} from "../controllers/projectsController.js";
+import { protect } from "../controllers/authController.js";
 
 const router = express.Router();
 
+// Public Routes
+router.get("/", getAllProjects); // Get all projects
+router.get("/id/:projectId", getProjectById); // Get project by ID
 
-// create project
-router.post("/", (req, res) => {
-    res.send("Projects");
-});
+// Protected Routes
+router.post("/", protect, createProject); // Create new project
+router.patch("/id/:projectId", protect, updateProject); // Update project
+router.delete("/id/:projectId", protect, deleteProject); // Delete project
 
-// get all projects
-router.get("/", (req, res) => {
-    res.send("Projects");
-});
-
-// get project by id
-router.get("/:id", (req, res) => {
-    res.send("Projects");
-});
-
-// update project
-router.put("/:id", (req, res) => {
-    res.send("Projects");
-});
-
-// delete project
-router.delete("/:id", (req, res) => {
-    res.send("Projects");
-});
-
+// User specific routes
+router.get("/my-projects", protect, getMyProjects); // Get logged in user's projects
 
 export default router;
