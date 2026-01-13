@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Edit2, Trash2, Globe, Calendar, X, Save, Folder } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Edit2, Trash2, Globe, Calendar, X, Save, Folder, Eye } from 'lucide-react';
 import { DEFAULT_AVATAR_URL } from '../constants';
 
 // Define Project Type locally since we couldn't find the central types file
@@ -301,13 +302,19 @@ const Projects: React.FC = () => {
                                 </div>
 
                                 <div className="border-t border-white/5 pt-4 flex justify-between items-center text-xs text-gray-500">
-                                    <div className="flex items-center gap-2">
-                                        <Folder size={12} />
-                                        <span className="capitalize">{project.category}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Calendar size={12} />
-                                        <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                                    <Link to={`/projects/${project._id}`} className="flex items-center gap-1 text-white hover:text-blue-400 transition-colors">
+                                        <Eye size={14} />
+                                        Preview
+                                    </Link>
+                                    <div className="flex gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <Folder size={12} />
+                                            <span className="capitalize">{project.category}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Calendar size={12} />
+                                            <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
