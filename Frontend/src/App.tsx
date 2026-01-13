@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Profile from "./components/Profile";
+import Projects from "./components/Projects";
 import { useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toast";
 import { DEFAULT_AVATAR_URL } from "./constants";
@@ -54,6 +55,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
           <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+          <Route path="/projects" element={<Projects />} />
           <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
         </Routes>
       </ToastProvider>

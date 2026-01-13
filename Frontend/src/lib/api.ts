@@ -61,4 +61,27 @@ export const api = {
         }
         return responseData;
     },
+
+    delete: async (endpoint: string) => {
+        const token = localStorage.getItem('talentlayer_token');
+        const headers: any = {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'DELETE',
+            headers,
+        });
+
+        if (response.status === 204) {
+            return null;
+        }
+
+        const responseData = await response.json();
+        if (!response.ok) {
+            throw new Error(responseData.message || 'API Error');
+        }
+        return responseData;
+    },
 };
