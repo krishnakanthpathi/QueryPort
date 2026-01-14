@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
-import { X, Save, Globe } from 'lucide-react';
+import { X, Save, Globe, Upload, Image as ImageIcon } from 'lucide-react';
 
 interface Project {
     _id?: string;
@@ -51,8 +51,12 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, project, o
 
     const [newLink, setNewLink] = useState('');
     const [newTag, setNewTag] = useState('');
-    const [newImage, setNewImage] = useState('');
+    // const [newImage, setNewImage] = useState(''); // Removed in favor of file upload
     const [newContributor, setNewContributor] = useState('');
+    const [newImages, setNewImages] = useState<File[]>([]);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const avatarInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (project) {
@@ -96,18 +100,54 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, project, o
         });
         setNewLink('');
         setNewTag('');
-        setNewImage('');
+        // setNewImage('');
         setNewContributor('');
+        setNewImages([]);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (avatarInputRef.current) avatarInputRef.current.value = '';
+        setAvatarFile(null);
     };
 
     const handleSave = async () => {
         try {
             setLoading(true);
             setError('');
+
+            const data = new FormData();
+            data.append('title', formData.title);
+            data.append('description', formData.description);
+            data.append('tagline', formData.tagline);
+            data.append('skills', formData.skills);
+            data.append('status', formData.status);
+            data.append('category', formData.category);
+            data.append('avatar', formData.avatar);
+            data.append('startDate', formData.startDate);
+            data.append('endDate', formData.endDate);
+            data.append('budget', formData.budget.toString());
+
+            // Append Arrays
+            formData.links.forEach(link => data.append('links', link));
+            formData.tags.forEach(tag => data.append('tags', tag));
+            formData.contributors.forEach(contributor => data.append('contributors', contributor));
+
+            // Existing images
+            formData.images.forEach(img => data.append('images', img));
+
+            // New Images
+            newImages.forEach(file => {
+                data.append('newImages', file);
+            });
+
+            // New Avatar
+            if (avatarFile) {
+                data.append('avatarFile', avatarFile);
+            }
+
+
             if (isEditing && project?._id) {
-                await api.patch(`/projects/id/${project._id}`, formData);
+                await api.patch(`/projects/id/${project._id}`, data);
             } else {
-                await api.post('/projects', formData);
+                await api.post('/projects', data);
             }
             onSave();
             onClose();
@@ -140,12 +180,23 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, project, o
         setFormData({ ...formData, tags: formData.tags.filter(t => t !== tag) });
     };
 
-    const addImage = () => {
-        if (newImage && !formData.images.includes(newImage)) {
-            setFormData({ ...formData, images: [...formData.images, newImage] });
-            setNewImage('');
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const files = Array.from(e.target.files);
+            setNewImages(prev => [...prev, ...files]);
         }
     };
+
+    const removeNewImage = (index: number) => {
+        setNewImages(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setAvatarFile(e.target.files[0]);
+        }
+    };
+
     const removeImage = (img: string) => {
         setFormData({ ...formData, images: formData.images.filter(i => i !== img) });
     };
@@ -273,13 +324,43 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, project, o
                         </div>
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Project Avatar URL</label>
-                            <input
-                                value={formData.avatar}
-                                onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
-                                placeholder="https://..."
-                            />
+                            <label className="block text-sm text-gray-400 mb-1">Project Avatar</label>
+                            <div className="flex items-center gap-4">
+                                {(avatarFile || formData.avatar) && (
+                                    <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 group">
+                                        <img
+                                            src={avatarFile ? URL.createObjectURL(avatarFile) : formData.avatar}
+                                            alt="Avatar Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                setAvatarFile(null);
+                                                setFormData({ ...formData, avatar: '' });
+                                            }}
+                                            className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X size={20} className="text-white" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                <input
+                                    type="file"
+                                    ref={avatarInputRef}
+                                    onChange={handleAvatarSelect}
+                                    className="hidden"
+                                    accept="image/*"
+                                />
+
+                                <button
+                                    onClick={() => avatarInputRef.current?.click()}
+                                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white transition-colors"
+                                >
+                                    <Upload size={16} />
+                                    {avatarFile || formData.avatar ? 'Change Avatar' : 'Upload Avatar'}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Tags */}
@@ -307,24 +388,49 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, project, o
 
                         {/* Images */}
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Project Images (URLs)</label>
-                            <div className="flex gap-2 mb-2">
-                                <input
-                                    value={newImage}
-                                    onChange={(e) => setNewImage(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && addImage()}
-                                    className="flex-1 bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
-                                    placeholder="https://..."
-                                />
-                                <button onClick={addImage} className="bg-white/10 hover:bg-white/20 px-4 rounded-lg font-medium transition-colors">Add</button>
+                            <label className="block text-sm text-gray-400 mb-1">Project Images</label>
+
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageSelect}
+                                className="hidden"
+                                multiple
+                                accept="image/*"
+                            />
+
+                            <div className="flex flex-wrap gap-4 mb-4">
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-4 py-3 transition-colors text-gray-300 hover:text-white"
+                                >
+                                    <Upload size={20} />
+                                    <span>Upload Images</span>
+                                </button>
                             </div>
+
                             <div className="space-y-2">
+                                {/* Existing Images */}
                                 {formData.images.map((img, i) => (
-                                    <div key={i} className="flex items-center justify-between bg-white/5 p-2 rounded-lg text-sm text-gray-300">
+                                    <div key={`existing-${i}`} className="flex items-center justify-between bg-white/5 p-2 rounded-lg text-sm text-gray-300">
                                         <div className="flex items-center gap-2 truncate">
+                                            <ImageIcon size={16} className="text-gray-400" />
                                             <span className="truncate max-w-[300px]">{img}</span>
+                                            <span className="text-xs bg-gray-700 px-2 py-0.5 rounded text-gray-300">Existing</span>
                                         </div>
-                                        <button onClick={() => removeImage(img)} className="hover:text-white p-1"><X size={14} /></button>
+                                        <button onClick={() => removeImage(img)} className="hover:text-red-400 p-1 transition-colors"><X size={14} /></button>
+                                    </div>
+                                ))}
+
+                                {/* New Images */}
+                                {newImages.map((file, i) => (
+                                    <div key={`new-${i}`} className="flex items-center justify-between bg-blue-500/10 border border-blue-500/20 p-2 rounded-lg text-sm text-blue-200">
+                                        <div className="flex items-center gap-2 truncate">
+                                            <ImageIcon size={16} className="text-blue-400" />
+                                            <span className="truncate max-w-[300px]">{file.name}</span>
+                                            <span className="text-xs bg-blue-500/20 px-2 py-0.5 rounded text-blue-200">New</span>
+                                        </div>
+                                        <button onClick={() => removeNewImage(i)} className="hover:text-red-400 p-1 transition-colors"><X size={14} /></button>
                                     </div>
                                 ))}
                             </div>

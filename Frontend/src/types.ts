@@ -1,0 +1,38 @@
+export interface User {
+    _id: string;
+    id?: string; // For compatibility
+    name: string;
+    username: string;
+    email: string;
+    avatar?: string;
+}
+
+export interface Profile {
+    bio?: string;
+    title?: string;
+    locations?: string;
+    resume?: string;
+    socialLinks?: { platform: string; url: string }[];
+    user?: User;
+}
+
+export interface Project {
+    _id?: string;
+    title: string;
+    description: string;
+    tagline?: string;
+    skills?: string;
+    status: 'draft' | 'published';
+    category?: 'personal' | 'professional' | 'others';
+    links?: string[];
+    tags?: string[];
+    images?: string[];
+    avatar?: string;
+    startDate?: string;
+    endDate?: string;
+    budget?: number;
+    contributors?: string[];
+    userId?: User | string;
+    createdAt?: string;
+    updatedAt?: string;
+}

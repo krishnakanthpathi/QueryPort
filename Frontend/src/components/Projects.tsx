@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Globe, Calendar, Folder, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Folder, Eye } from 'lucide-react';
 import { DEFAULT_AVATAR_URL } from '../constants';
 import ProjectModal from './ProjectModal';
 
@@ -140,6 +140,8 @@ const Projects: React.FC = () => {
                         )}
                     </div>
                 </div>
+
+                {error && <div className="text-red-500 text-center mb-4">{error}</div>}
 
                 {loading && !isModalOpen && projects.length === 0 ? (
                     <div className="text-center py-20 text-gray-400">Loading projects...</div>

@@ -8,6 +8,7 @@ import {
     getMyProjects
 } from "../controllers/projectsController.js";
 import { protect } from "../controllers/authController.js";
+import { upload } from "../utils/cloudinary.js";
 
 const router = express.Router();
 
@@ -16,8 +17,8 @@ router.get("/", getAllProjects); // Get all projects
 router.get("/id/:projectId", getProjectById); // Get project by ID
 
 // Protected Routes
-router.post("/", protect, createProject); // Create new project
-router.patch("/id/:projectId", protect, updateProject); // Update project
+router.post("/", protect, upload.fields([{ name: 'newImages' }, { name: 'avatarFile', maxCount: 1 }]), createProject); // Create new project
+router.patch("/id/:projectId", protect, upload.fields([{ name: 'newImages' }, { name: 'avatarFile', maxCount: 1 }]), updateProject); // Update project
 router.delete("/id/:projectId", protect, deleteProject); // Delete project
 
 // User specific routes
