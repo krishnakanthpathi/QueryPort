@@ -41,11 +41,13 @@ const Projects: React.FC = () => {
     // UI State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
 
     const fetchProjects = async () => {
         try {
             setLoading(true);
-            const data = await api.get('/projects');
+            const endpoint = activeTab === 'my' ? '/projects/my-projects' : '/projects';
+            const data = await api.get(endpoint);
             setProjects(data.data.projects);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch projects');
@@ -56,7 +58,7 @@ const Projects: React.FC = () => {
 
     useEffect(() => {
         fetchProjects();
-    }, []);
+    }, [activeTab]);
 
     const openCreateModal = () => {
         setSelectedProject(null);
@@ -95,22 +97,48 @@ const Projects: React.FC = () => {
     return (
         <div className="min-h-screen pt-32 pb-12 bg-black text-white relative overflow-hidden overflow-y-auto w-full px-4">
             <div className="max-w-6xl mx-auto">
-                <div className="flex justify-between items-center mb-10">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                     <div>
                         <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-500">
                             Projects
                         </h1>
                         <p className="text-gray-400 mt-2">Discover what others are building</p>
                     </div>
-                    {user && (
-                        <button
-                            onClick={openCreateModal}
-                            className="bg-white text-black hover:bg-gray-200 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all transform hover:scale-105 shadow-lg shadow-white/10"
-                        >
-                            <Plus size={20} />
-                            Create Project
-                        </button>
-                    )}
+
+                    <div className="flex items-center gap-4">
+                        {user && (
+                            <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
+                                <button
+                                    onClick={() => setActiveTab('all')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'all'
+                                        ? 'bg-white text-black shadow-lg'
+                                        : 'text-gray-400 hover:text-white'
+                                        }`}
+                                >
+                                    All Projects
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('my')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'my'
+                                        ? 'bg-white text-black shadow-lg'
+                                        : 'text-gray-400 hover:text-white'
+                                        }`}
+                                >
+                                    My Projects
+                                </button>
+                            </div>
+                        )}
+
+                        {user && (
+                            <button
+                                onClick={openCreateModal}
+                                className="bg-white text-black hover:bg-gray-200 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all transform hover:scale-105 shadow-lg shadow-white/10"
+                            >
+                                <Plus size={20} />
+                                <span className="hidden md:inline">Create Project</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {loading && !isModalOpen && projects.length === 0 ? (
