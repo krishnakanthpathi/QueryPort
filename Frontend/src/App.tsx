@@ -5,10 +5,11 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Profile from "./components/Profile";
 import Projects from "./components/Projects";
+import Achievements from "./components/Achievements";
 import ProjectView from "./components/ProjectView";
+import AchievementView from "./components/AchievementView";
 import { useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toast";
-import { DEFAULT_AVATAR_URL } from "./constants";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const Home = () => {
@@ -26,7 +27,7 @@ const Home = () => {
             <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1 border-2 border-white/20 mb-6 shadow-2xl backdrop-blur-sm">
               <div className="w-full h-full rounded-full overflow-hidden">
                 <img
-                  src={user?.avatar || DEFAULT_AVATAR_URL}
+                  src={user?.avatar || "https://res.cloudinary.com/dja9j771q/image/upload/v1710134447/avatar_uy0i8a.png"}
                   alt={user?.name}
                   className="w-full h-full object-cover opacity-90"
                 />
@@ -58,6 +59,8 @@ const App: React.FC = () => {
           <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:projectId" element={<ProjectView />} />
+          <Route path="/achievements" element={<Achievements />} />
+          <Route path="/achievements/:id" element={<AchievementView />} />
           <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
         </Routes>
       </ToastProvider>

@@ -36,3 +36,16 @@ export interface Project {
     createdAt?: string;
     updatedAt?: string;
 }
+
+export interface Achievement {
+    _id?: string;
+    title: string;
+    description: string;
+    organization: string;
+    date: string;
+    image?: string;
+    url?: string;
+    userId?: User | string;
+    createdAt?: string;
+    updatedAt?: string;
+}

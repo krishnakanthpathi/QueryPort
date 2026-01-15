@@ -33,6 +33,11 @@ const Navbar: React.FC = () => {
                     Projects
                   </button>
                 </Link>
+                <Link to="/achievements">
+                  <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
+                    Achievements
+                  </button>
+                </Link>
                 <Link to="/profile">
                   <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
                     Profile
@@ -95,6 +100,7 @@ const Navbar: React.FC = () => {
                 <span className="text-gray-200 font-medium">{user?.name}</span>
               </div>
               <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
+              <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
               <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Profile</Link>
               <button onClick={handleLogout} className="bg-white/10 text-white py-2 rounded-lg border border-white/20 hover:bg-white/20">Logout</button>
             </>
