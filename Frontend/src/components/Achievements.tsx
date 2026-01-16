@@ -67,15 +67,6 @@ const Achievements: React.FC = () => {
         return ownerId === user._id || ownerId === user.id;
     };
 
-    const ensureAbsoluteUrl = (url: string) => {
-        if (!url) return '';
-        const cleanUrl = url.trim();
-        if (cleanUrl.match(/^https?:\/\//i)) {
-            return cleanUrl;
-        }
-        return `https://${cleanUrl}`;
-    };
-
     return (
         <div className="min-h-screen pt-32 pb-12 bg-black text-white relative overflow-hidden overflow-y-auto w-full px-4">
             <div className="max-w-6xl mx-auto">
