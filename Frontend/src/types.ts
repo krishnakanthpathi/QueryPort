@@ -49,3 +49,16 @@ export interface Achievement {
     createdAt?: string;
     updatedAt?: string;
 }
+
+export interface Certification {
+    _id?: string;
+    name: string;
+    issuingOrganization: string;
+    issueDate: string;
+    credentialId?: string;
+    credentialUrl?: string;
+    image?: string;
+    userId?: User | string;
+    createdAt?: string;
+    updatedAt?: string;
+}

@@ -8,6 +8,8 @@ import Projects from "./components/Projects";
 import Achievements from "./components/Achievements";
 import ProjectView from "./components/ProjectView";
 import AchievementView from "./components/AchievementView";
+import Certifications from "./components/Certifications";
+import CertificationView from "./components/CertificationView";
 import { useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toast";
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -61,6 +63,8 @@ const App: React.FC = () => {
           <Route path="/projects/:projectId" element={<ProjectView />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/achievements/:id" element={<AchievementView />} />
+          <Route path="/certifications" element={<Certifications />} />
+          <Route path="/certifications/:id" element={<CertificationView />} />
           <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
         </Routes>
       </ToastProvider>
