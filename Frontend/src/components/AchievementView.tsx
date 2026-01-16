@@ -70,8 +70,8 @@ const AchievementView: React.FC = () => {
     if (loading) return <div className="min-h-screen pt-32 text-center text-white">Loading...</div>;
     if (error || !achievement) return <div className="min-h-screen pt-32 text-center text-red-500">{error || 'Achievement not found'}</div>;
 
-    const ownerName = typeof achievement.userId !== 'string' ? achievement.userId.name : 'Unknown';
-    const ownerAvatar = typeof achievement.userId !== 'string' && achievement.userId.avatar ? achievement.userId.avatar : DEFAULT_AVATAR_URL;
+    const ownerName = achievement.userId && typeof achievement.userId !== 'string' ? achievement.userId.name : 'Unknown';
+    const ownerAvatar = achievement.userId && typeof achievement.userId !== 'string' && achievement.userId.avatar ? achievement.userId.avatar : DEFAULT_AVATAR_URL;
 
     return (
         <div className="min-h-screen pt-32 pb-12 bg-black text-white px-4 relative overflow-hidden overflow-y-auto w-full">
@@ -150,7 +150,7 @@ const AchievementView: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="font-bold text-lg">{ownerName}</p>
-                                    <p className="text-xs text-gray-400">@{typeof achievement.userId !== 'string' ? achievement.userId.username : 'user'}</p>
+                                    <p className="text-xs text-gray-400">@{achievement.userId && typeof achievement.userId !== 'string' ? achievement.userId.username : 'user'}</p>
                                 </div>
                             </div>
                         </div>
