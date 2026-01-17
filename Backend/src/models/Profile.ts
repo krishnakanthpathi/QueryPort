@@ -28,6 +28,12 @@ const profileSchema = new mongoose.Schema(
         locations: {
             type: String,
         },
+        skills: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Skill',
+            },
+        ],
     },
     {
         timestamps: true,

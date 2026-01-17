@@ -7,6 +7,14 @@ export interface User {
     avatar?: string;
 }
 
+export interface Skill {
+    _id: string;
+    name: string;
+    image: string;
+    createdBy?: User | string;
+    createdAt?: string;
+}
+
 export interface Profile {
     bio?: string;
     title?: string;
@@ -14,6 +22,7 @@ export interface Profile {
     resume?: string;
     socialLinks?: { platform: string; url: string }[];
     user?: User;
+    skills?: (Skill | string)[];
 }
 
 export interface Project {

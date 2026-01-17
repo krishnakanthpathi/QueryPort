@@ -8,6 +8,7 @@ import Projects from "./components/Projects";
 import Achievements from "./components/Achievements";
 import ProjectView from "./components/ProjectView";
 import AchievementView from "./components/AchievementView";
+import Skills from './components/Skills';
 import Certifications from "./components/Certifications";
 import CertificationView from "./components/CertificationView";
 
@@ -64,6 +65,7 @@ const App: React.FC = () => {
           <Route path="/projects/:projectId" element={<ProjectView />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/achievements/:id" element={<AchievementView />} />
+          <Route path="/skills" element={<Skills />} />
           <Route path="/certifications" element={<Certifications />} />
           <Route path="/certifications/:id" element={<CertificationView />} />
 

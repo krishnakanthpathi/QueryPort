@@ -4,6 +4,7 @@ import profileRoutes from './profileRoutes.js';
 import projectRoutes from './projectsRoutes.js';
 import achievementRoutes from './achievementsRoutes.js';
 import certificationRoutes from './certificationsRoutes.js';
+import skillRoutes from './skillRoutes.js';
 
 
 const router = express.Router();
@@ -13,6 +14,7 @@ router.use('/profile', profileRoutes);
 router.use("/projects", projectRoutes);
 router.use("/achievements", achievementRoutes);
 router.use("/certifications", certificationRoutes);
+router.use("/skills", skillRoutes);
 
 
 export default router;
