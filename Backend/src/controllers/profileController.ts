@@ -127,7 +127,7 @@ export const updateProfile = catchAsync(async (req: Request, res: Response, next
         try {
             const result: any = await new Promise((resolve, reject) => {
                 const uploadStream = cloudinary.uploader.upload_stream(
-                    { folder: 'talentlayer/profile' },
+                    { folder: 'queryport/profile' },
                     (error, result) => {
                         if (error) return reject(error);
                         resolve(result);

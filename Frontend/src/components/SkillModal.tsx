@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { api } from '../lib/api';
-import { X, Save, Upload } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 
 interface SkillModalProps {
     isOpen: boolean;
@@ -18,7 +18,7 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
         image: '',
     });
 
-    const [imageFile, setImageFile] = useState<File | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const resetForm = () => {
@@ -26,7 +26,7 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
             name: '',
             image: '',
         });
-        setImageFile(null);
+
         if (fileInputRef.current) fileInputRef.current.value = '';
         setError('');
     };

@@ -89,7 +89,7 @@ const Profile: React.FC = () => {
             // Sync user avatar if it was updated
             if (updatedProfile.user && updatedProfile.user.avatar) {
                 // Update localStorage and reload to sync context
-                localStorage.setItem('talentlayer_user', JSON.stringify(updatedProfile.user));
+                localStorage.setItem('queryport_user', JSON.stringify(updatedProfile.user));
                 window.location.reload();
             }
 

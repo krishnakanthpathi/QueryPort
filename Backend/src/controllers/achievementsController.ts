@@ -17,7 +17,7 @@ export const createAchievement = catchAsync(async (req: Request, res: Response, 
         imageUrl = await new Promise<string>((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder: 'talentlayer/achievements/images',
+                    folder: 'queryport/achievements/images',
                 },
                 (error, result) => {
                     if (error) return reject(error);
@@ -113,7 +113,7 @@ export const updateAchievement = catchAsync(async (req: Request, res: Response, 
         newImageUrl = await new Promise<string>((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder: 'talentlayer/achievements/images',
+                    folder: 'queryport/achievements/images',
                 },
                 (error, result) => {
                     if (error) return reject(error);

@@ -21,7 +21,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
             <Logo className="h-8 w-8 text-white" />
-            <span className="text-xl font-bold tracking-tight text-white">TalentLayer</span>
+            <span className="text-xl font-bold tracking-tight text-white">QueryPort</span>
           </Link>
 
           {/* Desktop Menu */}

@@ -21,7 +21,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     useEffect(() => {
         // Check local storage for persisted user
-        const storedUser = localStorage.getItem('talentlayer_user');
+        // const token = localStorage.getItem('queryport_token');
+        const storedUser = localStorage.getItem('queryport_user');
         if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
                 const parsedUser = JSON.parse(storedUser);
@@ -31,7 +32,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setUser(parsedUser);
             } catch (e) {
                 console.error('Failed to parse user from local storage:', e);
-                localStorage.removeItem('talentlayer_user');
+                localStorage.removeItem('queryport_token');
+                localStorage.removeItem('queryport_user');
             }
         }
         setIsLoading(false);
@@ -53,8 +55,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             setUser(userData);
-            localStorage.setItem('talentlayer_token', token);
-            localStorage.setItem('talentlayer_user', JSON.stringify(userData));
+            localStorage.setItem('queryport_token', token);
+            localStorage.setItem('queryport_user', JSON.stringify(userData));
         } catch (error) {
             console.error(error);
             throw error;
@@ -79,8 +81,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             setUser(userData);
-            localStorage.setItem('talentlayer_token', token);
-            localStorage.setItem('talentlayer_user', JSON.stringify(userData));
+            localStorage.setItem('queryport_token', token);
+            localStorage.setItem('queryport_user', JSON.stringify(userData));
         } catch (error) {
             console.error(error);
             throw error;
@@ -101,8 +103,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (!userData.avatar) userData.avatar = DEFAULT_AVATAR_URL;
 
             setUser(userData);
-            localStorage.setItem('talentlayer_token', token);
-            localStorage.setItem('talentlayer_user', JSON.stringify(userData));
+            localStorage.setItem('queryport_token', token);
+            localStorage.setItem('queryport_user', JSON.stringify(userData));
         } catch (error) {
             console.error(error);
             throw error;
@@ -113,8 +115,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const logout = () => {
         setUser(null);
-        localStorage.removeItem('talentlayer_user');
-        localStorage.removeItem('talentlayer_token');
+        localStorage.removeItem('queryport_user');
+        localStorage.removeItem('queryport_token');
     };
 
     return (

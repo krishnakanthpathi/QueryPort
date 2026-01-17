@@ -24,13 +24,13 @@ export const createProject = catchAsync(async (req: Request, res: Response, next
     let imageUrls: string[] = [];
     let avatarUrl: string = '';
 
-    // Upload new images to Cloudinary (talentlayer/projects/images)
+    // Upload new images to Cloudinary (queryport/projects/images)
     if (imageFiles.length > 0) {
         const uploadPromises = imageFiles.map(file => {
             return new Promise<string>((resolve, reject) => {
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
-                        folder: 'talentlayer/projects/images',
+                        folder: 'queryport/projects/images',
                     },
                     (error, result) => {
                         if (error) return reject(error);
@@ -44,12 +44,12 @@ export const createProject = catchAsync(async (req: Request, res: Response, next
         imageUrls = await Promise.all(uploadPromises);
     }
 
-    // Upload Avatar to Cloudinary (talentlayer/projects/avatar)
+    // Upload Avatar to Cloudinary (queryport/projects/avatar)
     if (avatarFiles.length > 0) {
         avatarUrl = await new Promise<string>((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder: 'talentlayer/projects/avatar',
+                    folder: 'queryport/projects/avatar',
                 },
                 (error, result) => {
                     if (error) return reject(error);
@@ -172,7 +172,7 @@ export const updateProject = catchAsync(async (req: Request, res: Response, next
             return new Promise<string>((resolve, reject) => {
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
-                        folder: 'talentlayer/projects/images',
+                        folder: 'queryport/projects/images',
                     },
                     (error, result) => {
                         if (error) return reject(error);
@@ -191,7 +191,7 @@ export const updateProject = catchAsync(async (req: Request, res: Response, next
         newAvatarUrl = await new Promise<string>((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder: 'talentlayer/projects/avatar',
+                    folder: 'queryport/projects/avatar',
                 },
                 (error, result) => {
                     if (error) return reject(error);

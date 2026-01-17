@@ -17,7 +17,7 @@ export const createCertification = catchAsync(async (req: Request, res: Response
         imageUrl = await new Promise<string>((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder: 'talentlayer/certifications/images',
+                    folder: 'queryport/certifications/images',
                 },
                 (error, result) => {
                     if (error) return reject(error);
@@ -114,7 +114,7 @@ export const updateCertification = catchAsync(async (req: Request, res: Response
         newImageUrl = await new Promise<string>((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder: 'talentlayer/certifications/images',
+                    folder: 'queryport/certifications/images',
                 },
                 (error, result) => {
                     if (error) return reject(error);

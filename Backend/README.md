@@ -1,6 +1,6 @@
-# TalentLayer Backend
+# QueryPort Backend
 
-This is the backend for the TalentLayer platform, built with Node.js, Express, and MongoDB. It serves as a headless content management system for developer portfolios.
+This is the backend for the QueryPort platform, built with Node.js, Express, and MongoDB. It serves as a headless content management system for developer portfolios.
 
 ## 🛠 Tech Stack
 - **Runtime**: Node.js

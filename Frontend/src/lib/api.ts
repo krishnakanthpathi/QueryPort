@@ -2,7 +2,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8888/api/
 
 export const api = {
     get: async (endpoint: string) => {
-        const token = localStorage.getItem('talentlayer_token');
+        const token = localStorage.getItem('queryport_token');
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'GET',
             headers: {
@@ -17,7 +17,7 @@ export const api = {
     },
 
     post: async (endpoint: string, data: any) => {
-        const token = localStorage.getItem('talentlayer_token');
+        const token = localStorage.getItem('queryport_token');
         const headers: any = {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
@@ -40,7 +40,7 @@ export const api = {
     },
 
     patch: async (endpoint: string, data: any) => {
-        const token = localStorage.getItem('talentlayer_token');
+        const token = localStorage.getItem('queryport_token');
         const headers: any = {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
@@ -63,7 +63,7 @@ export const api = {
     },
 
     delete: async (endpoint: string) => {
-        const token = localStorage.getItem('talentlayer_token');
+        const token = localStorage.getItem('queryport_token');
         const headers: any = {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Trash2, Check, Download } from 'lucide-react';
+import { Plus, Trash2, Check } from 'lucide-react';
 import SkillModal from './SkillModal';
 import type { Skill } from '../types';
 

@@ -1,6 +1,6 @@
-# TalentLayer Roadmap
+# QueryPort Roadmap
 
-This document outlines the development roadmap for **TalentLayer**, a headless portfolio platform allowing users to store and serve their portfolio data via API.
+This document outlines the development roadmap for **QueryPort**, a headless portfolio platform allowing users to store and serve their portfolio data via API.
 
 ## 🚀 Phase 1: Foundation & Setup (Completed)
 **Goal**: Establish the technical infrastructure for Backend and Frontend.
@@ -57,7 +57,7 @@ This document outlines the development roadmap for **TalentLayer**, a headless p
 ## 🌍 Phase 4: The Core Value (Usage)
 **Goal**: Demonstrate how the data is used.
 
-- [ ] **Default Portfolio Template**: A simple, elegant portfolio site that fetches data from the user's TalentLayer API.
+- [ ] **Default Portfolio Template**: A simple, elegant portfolio site that fetches data from the user's QueryPort API.
 - [ ] **Documentation Site**: Clear guides on how others can fetch this data to build *their own* sites.
 
 ## 🔮 Phase 5: Future Enhancements
