@@ -1,4 +1,5 @@
 import Navbar from "./components/Navbar";
+import Logo from "./components/Logo";
 import Galaxy from "./components/Galaxy";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
@@ -24,6 +25,29 @@ const Home = () => {
       <div className="absolute inset-0 z-0">
         <Galaxy />
       </div>
+
+      {!isAuthenticated && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none px-4">
+          <div className="flex flex-col items-center animate-in fade-in zoom-in duration-1000">
+            <div className="mb-6 p-6 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-[0_0_100px_rgba(255,255,255,0.1)]">
+              <Logo className="w-24 h-24 md:w-32 md:h-32 text-transparent fill-white stroke-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+            </div>
+
+            <h1 className="text-7xl md:text-9xl font-black text-white tracking-tighter mb-4 drop-shadow-2xl">
+              Query<span className="text-gray-400">Port</span>
+            </h1>
+
+            <div className="space-y-2 text-center">
+              <p className="text-2xl md:text-4xl font-light text-gray-200 tracking-widest uppercase">
+                Unlock Your Potential
+              </p>
+              <p className="text-sm md:text-lg text-gray-400 font-light tracking-wider max-w-md mx-auto">
+                The ultimate platform to showcase your projects, achievements, and skills to the world.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isAuthenticated && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
