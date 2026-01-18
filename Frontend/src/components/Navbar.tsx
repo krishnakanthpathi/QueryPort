@@ -49,6 +49,11 @@ const Navbar: React.FC = () => {
                     Skills
                   </button>
                 </Link>
+                <Link to="/profile">
+                  <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
+                    About
+                  </button>
+                </Link>
 
                 <div className="relative">
                   <button

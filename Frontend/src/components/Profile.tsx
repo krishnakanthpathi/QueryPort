@@ -119,7 +119,12 @@ const Profile: React.FC = () => {
     };
 
     if (loading && !profile && !isEditing) {
-        return <div className="min-h-screen pt-24 text-center text-white">Loading profile...</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center text-white">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mr-3"></div>
+                Loading Profile...
+            </div>
+        );
     }
 
     return (
