@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import Logo from './Logo';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { DEFAULT_AVATAR_URL } from '../constants';
 
 const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -25,7 +26,7 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-8 ml-8">
             {isAuthenticated ? (
               <>
                 <Link to="/projects">
@@ -49,27 +50,49 @@ const Navbar: React.FC = () => {
                   </button>
                 </Link>
 
-                <Link to="/profile">
-                  <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
-                    Profile
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center gap-2 hover:bg-white/10 rounded-full pr-4 pl-2 py-1 transition-all border border-transparent hover:border-white/10"
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
+                      <img
+                        src={user?.avatar || DEFAULT_AVATAR_URL}
+                        alt={user?.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-gray-300">{user?.name?.split(' ')[0]}</span>
+                    <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                   </button>
-                </Link>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
-                    <img
-                      src={user?.avatar || DEFAULT_AVATAR_URL}
-                      alt={user?.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-400">Hello, {user?.name?.split(' ')[0]}</span>
+
+                  {isProfileOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 shadow-xl py-2 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-4 py-3 border-b border-white/10 mb-1">
+                        <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-400 truncate">@{user?.username}</p>
+                      </div>
+
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                      >
+                        Profile
+                      </Link>
+
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsProfileOpen(false);
+                        }}
+                        className="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/10 transition-colors text-left mt-1"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="bg-white/10 hover:bg-white/20 text-white font-medium px-5 py-2 rounded-full transition-all border border-white/20"
-                >
-                  Logout
-                </button>
               </>
             ) : (
               <>
