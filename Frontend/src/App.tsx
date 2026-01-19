@@ -1,6 +1,6 @@
 import Navbar from "./components/Navbar";
 import Logo from "./components/Logo";
-import Galaxy from "./components/Galaxy";
+// import Galaxy from "./components/Galaxy";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
