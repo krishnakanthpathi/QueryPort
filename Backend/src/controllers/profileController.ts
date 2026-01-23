@@ -102,12 +102,24 @@ export const updateProfile = catchAsync(async (req: Request, res: Response, next
 
     // Build profile object
     const profileFields: any = {};
-    const { bio, title, socialLinks, resume, locations } = req.body; // Removed avatar from here as it might come from file
+    const { bio, title, socialLinks, resume, locations, codingProfiles } = req.body; // Removed avatar from here as it might come from file
 
     if (bio) profileFields.bio = bio;
     if (title) profileFields.title = title;
     if (resume) profileFields.resume = resume;
     if (locations) profileFields.locations = locations;
+
+    if (codingProfiles) {
+        if (typeof codingProfiles === 'string') {
+            try {
+                profileFields.codingProfiles = JSON.parse(codingProfiles);
+            } catch (e) {
+                // ignore
+            }
+        } else {
+            profileFields.codingProfiles = codingProfiles;
+        }
+    }
     if (socialLinks) {
         // socialLinks might come as string if sent via FormData, need to parse if it is string
         if (typeof socialLinks === 'string') {

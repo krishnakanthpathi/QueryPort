@@ -28,6 +28,13 @@ const profileSchema = new mongoose.Schema(
         locations: {
             type: String,
         },
+        codingProfiles: {
+            github: { type: String, default: '' },
+            leetcode: { type: String, default: '' },
+            codeforces: { type: String, default: '' },
+            hackerrank: { type: String, default: '' },
+            codechef: { type: String, default: '' },
+        },
         skills: [
             {
                 type: mongoose.Schema.Types.ObjectId,

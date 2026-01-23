@@ -23,6 +23,13 @@ export interface Profile {
     socialLinks?: { platform: string; url: string }[];
     user?: User;
     skills?: (Skill | string)[];
+    codingProfiles?: {
+        github?: string;
+        leetcode?: string;
+        codeforces?: string;
+        hackerrank?: string;
+        codechef?: string;
+    };
 }
 
 export interface Project {

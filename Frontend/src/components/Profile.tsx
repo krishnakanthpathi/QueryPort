@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import type { Profile as ProfileType } from '../types';
-import { Edit2, MapPin, Save, X, Globe, FileText, Upload } from 'lucide-react';
+import { Edit2, MapPin, Save, X, Globe, FileText, Upload, Code } from 'lucide-react'; // Added Code icon
 import { DEFAULT_AVATAR_URL } from '../constants';
+import CodingHeatmaps from './CodingHeatmaps'; // Import
 
 const Profile: React.FC = () => {
     const { user } = useAuth();
@@ -22,6 +23,13 @@ const Profile: React.FC = () => {
         resume: '',
         avatar: '',
         socialLinks: [] as { platform: string; url: string }[],
+        codingProfiles: {
+            github: '',
+            leetcode: '',
+            codeforces: '',
+            hackerrank: '',
+            codechef: ''
+        }
     });
 
     useEffect(() => {
@@ -41,6 +49,13 @@ const Profile: React.FC = () => {
                         resume: profileData.resume || '',
                         avatar: profileData.user?.avatar || user?.avatar || '',
                         socialLinks: profileData.socialLinks || [],
+                        codingProfiles: {
+                            github: profileData.codingProfiles?.github || '',
+                            leetcode: profileData.codingProfiles?.leetcode || '',
+                            codeforces: profileData.codingProfiles?.codeforces || '',
+                            hackerrank: profileData.codingProfiles?.hackerrank || '',
+                            codechef: profileData.codingProfiles?.codechef || ''
+                        }
                     });
                 }
             } catch (err: unknown) {
@@ -74,6 +89,7 @@ const Profile: React.FC = () => {
             // but for FormData, complex objects need stringification or multiple fields.
             // My backend controller update handles `if (typeof socialLinks === 'string') JSON.parse`.
             payload.append('socialLinks', JSON.stringify(formData.socialLinks));
+            payload.append('codingProfiles', JSON.stringify(formData.codingProfiles));
 
             if (avatarFile) {
                 payload.append('avatar', avatarFile);
@@ -310,6 +326,47 @@ const Profile: React.FC = () => {
                         </section>
 
                         {isEditing && (
+                            <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-xl">
+                                <h3 className="text-xl font-bold mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+                                    <Code size={20} /> Coding Profiles
+                                </h3>
+                                <div className="space-y-3">
+                                    <input
+                                        placeholder="GitHub Username"
+                                        value={formData.codingProfiles.github}
+                                        onChange={(e) => setFormData({ ...formData, codingProfiles: { ...formData.codingProfiles, github: e.target.value } })}
+                                        className="w-full bg-black border border-white/20 rounded p-2 text-sm text-white focus:border-white focus:outline-none"
+                                    />
+                                    <input
+                                        placeholder="LeetCode Username"
+                                        value={formData.codingProfiles.leetcode}
+                                        onChange={(e) => setFormData({ ...formData, codingProfiles: { ...formData.codingProfiles, leetcode: e.target.value } })}
+                                        className="w-full bg-black border border-white/20 rounded p-2 text-sm text-white focus:border-white focus:outline-none"
+                                    />
+                                    <input
+                                        placeholder="Codeforces Handle"
+                                        value={formData.codingProfiles.codeforces}
+                                        onChange={(e) => setFormData({ ...formData, codingProfiles: { ...formData.codingProfiles, codeforces: e.target.value } })}
+                                        className="w-full bg-black border border-white/20 rounded p-2 text-sm text-white focus:border-white focus:outline-none"
+                                    />
+                                    <input
+                                        placeholder="HackerRank Username"
+                                        value={formData.codingProfiles.hackerrank}
+                                        onChange={(e) => setFormData({ ...formData, codingProfiles: { ...formData.codingProfiles, hackerrank: e.target.value } })}
+                                        className="w-full bg-black border border-white/20 rounded p-2 text-sm text-white focus:border-white focus:outline-none"
+                                    />
+                                    <input
+                                        placeholder="CodeChef Username"
+                                        value={formData.codingProfiles.codechef}
+                                        onChange={(e) => setFormData({ ...formData, codingProfiles: { ...formData.codingProfiles, codechef: e.target.value } })}
+                                        className="w-full bg-black border border-white/20 rounded p-2 text-sm text-white focus:border-white focus:outline-none"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-2">Enter your usernames to generate heatmaps and badges.</p>
+                                </div>
+                            </section>
+                        )}
+
+                        {isEditing && (
                             <div className="flex gap-4">
                                 <button
                                     onClick={handleSave}
@@ -343,6 +400,12 @@ const Profile: React.FC = () => {
                         )}
                     </div>
                 </div>
+
+                {!isEditing && (
+                    <div className="w-full mt-8">
+                        <CodingHeatmaps profiles={profile?.codingProfiles || formData.codingProfiles} />
+                    </div>
+                )}
             </div>
         </div>
     );
