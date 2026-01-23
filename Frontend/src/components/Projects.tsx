@@ -43,12 +43,16 @@ const Projects: React.FC = () => {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
 
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+
     const fetchProjects = async () => {
         try {
             setLoading(true);
             const endpoint = activeTab === 'my' ? '/projects/my-projects' : '/projects';
-            const data = await api.get(endpoint);
+            const data = await api.get(`${endpoint}?page=${page}&limit=9`);
             setProjects(data.data.projects);
+            setTotalPages(data.totalPages || 1);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch projects');
         } finally {
@@ -58,6 +62,10 @@ const Projects: React.FC = () => {
 
     useEffect(() => {
         fetchProjects();
+    }, [activeTab, page]);
+
+    useEffect(() => {
+        setPage(1);
     }, [activeTab]);
 
     const openCreateModal = () => {
@@ -146,82 +154,106 @@ const Projects: React.FC = () => {
                 {loading && !isModalOpen && projects.length === 0 ? (
                     <div className="text-center py-20 text-gray-400">Loading projects...</div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {projects.map((project) => (
-                            <div key={project._id} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/30 transition-all duration-300 group hover:-translate-y-1">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10">
-                                            <img
-                                                src={
-                                                    (project.userId && typeof project.userId !== 'string' && project.userId.avatar)
-                                                        ? project.userId.avatar
-                                                        : DEFAULT_AVATAR_URL
-                                                }
-                                                alt="Owner"
-                                                className="w-full h-full object-cover"
-                                            />
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {projects.map((project) => (
+                                <div key={project._id} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/30 transition-all duration-300 group hover:-translate-y-1">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10">
+                                                <img
+                                                    src={
+                                                        (project.userId && typeof project.userId !== 'string' && project.userId.avatar)
+                                                            ? project.userId.avatar
+                                                            : DEFAULT_AVATAR_URL
+                                                    }
+                                                    alt="Owner"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-lg leading-tight truncate max-w-[150px]">{project.title}</h3>
+                                                <p className="text-xs text-gray-400">
+                                                    by {
+                                                        (project.userId && typeof project.userId !== 'string')
+                                                            ? project.userId.name
+                                                            : 'Unknown'
+                                                    }
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg leading-tight truncate max-w-[150px]">{project.title}</h3>
-                                            <p className="text-xs text-gray-400">
-                                                by {
-                                                    (project.userId && typeof project.userId !== 'string')
-                                                        ? project.userId.name
-                                                        : 'Unknown'
-                                                }
-                                            </p>
+                                        {isOwner(project) && (
+                                            <div className="flex gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => openEditModal(project)}
+                                                    className="p-2 bg-white/10 rounded-lg hover:bg-white/20 text-white transition-colors"
+                                                >
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(project._id)}
+                                                    className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <p className="text-gray-300 text-sm mb-4 line-clamp-3 h-[60px]">
+                                        {project.description}
+                                    </p>
+
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {project.tags?.slice(0, 3).map((tag, i) => (
+                                            <span key={i} className="text-xs bg-white/5 border border-white/5 px-2 py-1 rounded-md text-gray-400">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    <div className="border-t border-white/5 pt-4 flex justify-between items-center text-xs text-gray-500">
+                                        <Link to={`/projects/${project._id}`} className="flex items-center gap-1 text-white hover:text-blue-400 transition-colors">
+                                            <Eye size={14} />
+                                            Preview
+                                        </Link>
+                                        <div className="flex gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <Folder size={12} />
+                                                <span className="capitalize">{project.category}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Calendar size={12} />
+                                                <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    {isOwner(project) && (
-                                        <div className="flex gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => openEditModal(project)}
-                                                className="p-2 bg-white/10 rounded-lg hover:bg-white/20 text-white transition-colors"
-                                            >
-                                                <Edit2 size={14} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(project._id)}
-                                                className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
+                            ))}
+                        </div>
 
-                                <p className="text-gray-300 text-sm mb-4 line-clamp-3 h-[60px]">
-                                    {project.description}
-                                </p>
-
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {project.tags?.slice(0, 3).map((tag, i) => (
-                                        <span key={i} className="text-xs bg-white/5 border border-white/5 px-2 py-1 rounded-md text-gray-400">
-                                            #{tag}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                <div className="border-t border-white/5 pt-4 flex justify-between items-center text-xs text-gray-500">
-                                    <Link to={`/projects/${project._id}`} className="flex items-center gap-1 text-white hover:text-blue-400 transition-colors">
-                                        <Eye size={14} />
-                                        Preview
-                                    </Link>
-                                    <div className="flex gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <Folder size={12} />
-                                            <span className="capitalize">{project.category}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar size={12} />
-                                            <span>{new Date(project.createdAt).toLocaleDateString()}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                        {totalPages > 1 && (
+                            <div className="flex justify-center mt-8 gap-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className="px-4 py-2 bg-white/10 rounded-lg disabled:opacity-50 hover:bg-white/20 transition-colors"
+                                >
+                                    Previous
+                                </button>
+                                <span className="px-4 py-2 text-gray-400">
+                                    Page {page} of {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className="px-4 py-2 bg-white/10 rounded-lg disabled:opacity-50 hover:bg-white/20 transition-colors"
+                                >
+                                    Next
+                                </button>
                             </div>
-                        ))}
-                    </div>
+                        )}
+                    </>
                 )}
             </div>
 

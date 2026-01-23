@@ -112,12 +112,25 @@ export const createProject = catchAsync(async (req: Request, res: Response, next
 
 // Public: Get All Projects
 export const getAllProjects = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    // Simple find all for now, can add pagination/filtering later
-    const projects = await Project.find().populate('userId', 'name email avatar username');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 9;
+    const skip = (page - 1) * limit;
+
+    const [projects, total] = await Promise.all([
+        Project.find()
+            .populate('userId', 'name email avatar username')
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }),
+        Project.countDocuments()
+    ]);
 
     res.status(200).json({
         status: 'success',
         results: projects.length,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
         data: {
             projects,
         },
@@ -239,16 +252,10 @@ export const updateProject = catchAsync(async (req: Request, res: Response, next
     };
 
     if (newAvatarUrl) updateData.avatar = newAvatarUrl;
-    // Note: if req.body.avatar is present (string), it might be the existing one. 
-    // If not uploading a file, we might want to respect req.body.avatar? 
-    // Usually if user doesn't change avatar, frontend sends the existing URL or nothing?
-    // Let's assume if file is not provided, we check body. if body is present we update.
-    // If neither, we leave it alone (it's not in updateData yet unless added below)
 
     if (!newAvatarUrl && req.body.avatar !== undefined) {
         updateData.avatar = req.body.avatar;
     }
-
 
     if (links) updateData.links = links;
     if (tags) updateData.tags = tags;
@@ -297,11 +304,25 @@ export const getMyProjects = catchAsync(async (req: Request, res: Response, next
     // @ts-ignore
     const userId = req.user.id;
 
-    const projects = await Project.find({ userId }).populate('userId', 'name email avatar username');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 9;
+    const skip = (page - 1) * limit;
+
+    const [projects, total] = await Promise.all([
+        Project.find({ userId })
+            .populate('userId', 'name email avatar username')
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }),
+        Project.countDocuments({ userId })
+    ]);
 
     res.status(200).json({
         status: 'success',
         results: projects.length,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
         data: {
             projects,
         },

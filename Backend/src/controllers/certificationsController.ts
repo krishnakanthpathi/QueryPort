@@ -59,11 +59,25 @@ export const createCertification = catchAsync(async (req: Request, res: Response
 
 // Public: Get All Certifications
 export const getAllCertifications = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const certifications = await Certification.find().populate('userId', 'name email avatar username');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 9;
+    const skip = (page - 1) * limit;
+
+    const [certifications, total] = await Promise.all([
+        Certification.find()
+            .populate('userId', 'name email avatar username')
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }),
+        Certification.countDocuments()
+    ]);
 
     res.status(200).json({
         status: 'success',
         results: certifications.length,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
         data: {
             certifications,
         },
@@ -193,11 +207,25 @@ export const getMyCertifications = catchAsync(async (req: Request, res: Response
     // @ts-ignore
     const userId = req.user.id;
 
-    const certifications = await Certification.find({ userId }).populate('userId', 'name email avatar username');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 9;
+    const skip = (page - 1) * limit;
+
+    const [certifications, total] = await Promise.all([
+        Certification.find({ userId })
+            .populate('userId', 'name email avatar username')
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }),
+        Certification.countDocuments({ userId })
+    ]);
 
     res.status(200).json({
         status: 'success',
         results: certifications.length,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
         data: {
             certifications,
         },

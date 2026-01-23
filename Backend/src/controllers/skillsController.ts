@@ -38,11 +38,24 @@ export const createSkill = catchAsync(async (req: Request, res: Response, next: 
 
 // Get all global skills
 export const getAllSkills = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const skills = await Skill.find();
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 9;
+    const skip = (page - 1) * limit;
+
+    const [skills, total] = await Promise.all([
+        Skill.find()
+            .skip(skip)
+            .limit(limit)
+            .sort({ name: 1 }), // Sorting by name usually makes sense for skills
+        Skill.countDocuments()
+    ]);
 
     res.status(200).json({
         status: "success",
         results: skills.length,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
         data: {
             skills,
         },

@@ -16,14 +16,22 @@ const Skills: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
 
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+
     const fetchSkills = async () => {
         try {
             setLoading(true);
             // Fetch All Skills
-            const allRes = await api.get('/skills');
-            setSkills(allRes.data.skills);
+            if (activeTab === 'all') {
+                const allRes = await api.get(`/skills?page=${page}&limit=12`);
+                setSkills(allRes.data.skills);
+                setTotalPages(allRes.totalPages || 1);
+            }
 
-            // Fetch My Skills
+            // Fetch My Skills (always fetch to check ownership if logged in, but optimized: 
+            // actually we only need my skills if activeTab is 'my' OR to check ownership status when on 'all')
+            // For now, let's keep it simple. If valid user, fetch my skills.
             if (user) {
                 const myRes = await api.get('/skills/my-skills');
                 setUserSkills(myRes.data.skills);
@@ -37,7 +45,11 @@ const Skills: React.FC = () => {
 
     useEffect(() => {
         fetchSkills();
-    }, [user]);
+    }, [user, activeTab, page]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeTab]);
 
     const handleSave = () => {
         fetchSkills();
@@ -122,55 +134,79 @@ const Skills: React.FC = () => {
                 {loading && skills.length === 0 ? (
                     <div className="text-center py-20 text-gray-400">Loading skills...</div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {displayedSkills.map((skill) => (
-                            <div key={skill._id} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/30 transition-all duration-300 group hover:-translate-y-1 flex flex-col items-center text-center relative">
-                                <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center mb-4 p-2">
-                                    <img
-                                        src={skill.image}
-                                        alt={skill.name}
-                                        className="w-full h-full object-contain"
-                                    />
-                                </div>
-                                <h3 className="font-bold text-lg leading-tight mb-2">{skill.name}</h3>
-
-                                {activeTab === 'all' && (
-                                    <div className="mt-2">
-                                        {isOwned(skill._id) ? (
-                                            <span className="text-green-400 text-xs flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full">
-                                                <Check size={12} /> Added
-                                            </span>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleAddToProfile(skill._id)}
-                                                className="text-white text-xs flex items-center gap-1 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors"
-                                            >
-                                                <Plus size={12} /> Add to Profile
-                                            </button>
-                                        )}
+                    <>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {displayedSkills.map((skill) => (
+                                <div key={skill._id} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/30 transition-all duration-300 group hover:-translate-y-1 flex flex-col items-center text-center relative">
+                                    <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center mb-4 p-2">
+                                        <img
+                                            src={skill.image}
+                                            alt={skill.name}
+                                            className="w-full h-full object-contain"
+                                        />
                                     </div>
-                                )}
+                                    <h3 className="font-bold text-lg leading-tight mb-2">{skill.name}</h3>
 
-                                {activeTab === 'my' && (
-                                    <button
-                                        onClick={() => handleRemoveFromProfile(skill._id)}
-                                        className="absolute top-4 right-4 p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                        title="Remove from profile"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                                    {activeTab === 'all' && (
+                                        <div className="mt-2">
+                                            {isOwned(skill._id) ? (
+                                                <span className="text-green-400 text-xs flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full">
+                                                    <Check size={12} /> Added
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleAddToProfile(skill._id)}
+                                                    className="text-white text-xs flex items-center gap-1 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors"
+                                                >
+                                                    <Plus size={12} /> Add to Profile
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
 
-                        {displayedSkills.length === 0 && (
-                            <div className="col-span-full text-center py-20 text-gray-500">
-                                {activeTab === 'my'
-                                    ? "You haven't added any skills yet. Switch to 'All Skills' or add a new one!"
-                                    : "No skills found. Be the first to create one!"}
+                                    {activeTab === 'my' && (
+                                        <button
+                                            onClick={() => handleRemoveFromProfile(skill._id)}
+                                            className="absolute top-4 right-4 p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                            title="Remove from profile"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+
+                            {displayedSkills.length === 0 && (
+                                <div className="col-span-full text-center py-20 text-gray-500">
+                                    {activeTab === 'my'
+                                        ? "You haven't added any skills yet. Switch to 'All Skills' or add a new one!"
+                                        : "No skills found. Be the first to create one!"}
+                                </div>
+                            )}
+                        </div>
+
+                        {activeTab === 'all' && totalPages > 1 && (
+                            <div className="flex justify-center mt-8 gap-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className="px-4 py-2 bg-white/10 rounded-lg disabled:opacity-50 hover:bg-white/20 transition-colors"
+                                >
+                                    Previous
+                                </button>
+                                <span className="px-4 py-2 text-gray-400">
+                                    Page {page} of {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className="px-4 py-2 bg-white/10 rounded-lg disabled:opacity-50 hover:bg-white/20 transition-colors"
+                                >
+                                    Next
+                                </button>
                             </div>
                         )}
-                    </div>
+                    </>
                 )}
             </div>
 

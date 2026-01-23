@@ -59,11 +59,25 @@ export const createAchievement = catchAsync(async (req: Request, res: Response, 
 
 // Public: Get All Achievements
 export const getAllAchievements = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const achievements = await Achievement.find().populate('userId', 'name email avatar username');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 9;
+    const skip = (page - 1) * limit;
+
+    const [achievements, total] = await Promise.all([
+        Achievement.find()
+            .populate('userId', 'name email avatar username')
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }),
+        Achievement.countDocuments()
+    ]);
 
     res.status(200).json({
         status: 'success',
         results: achievements.length,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
         data: {
             achievements,
         },
@@ -191,11 +205,25 @@ export const getMyAchievements = catchAsync(async (req: Request, res: Response, 
     // @ts-ignore
     const userId = req.user.id;
 
-    const achievements = await Achievement.find({ userId }).populate('userId', 'name email avatar username');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 9;
+    const skip = (page - 1) * limit;
+
+    const [achievements, total] = await Promise.all([
+        Achievement.find({ userId })
+            .populate('userId', 'name email avatar username')
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }),
+        Achievement.countDocuments({ userId })
+    ]);
 
     res.status(200).json({
         status: 'success',
         results: achievements.length,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
         data: {
             achievements,
         },
