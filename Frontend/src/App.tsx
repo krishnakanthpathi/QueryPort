@@ -1,6 +1,6 @@
 import Navbar from "./components/Navbar";
 import Logo from "./components/Logo";
-// import Galaxy from "./components/Galaxy";
+import Galaxy from "./components/Galaxy";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -23,7 +23,7 @@ const Home = () => {
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-black">
       <div className="absolute inset-0 z-0">
-        {/* <Galaxy /> */}
+        <Galaxy />
       </div>
 
       {!isAuthenticated && (

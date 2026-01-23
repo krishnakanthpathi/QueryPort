@@ -29,32 +29,6 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-8 ml-8">
             {isAuthenticated ? (
               <>
-                <Link to="/projects">
-                  <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
-                    Projects
-                  </button>
-                </Link>
-                <Link to="/achievements">
-                  <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
-                    Achievements
-                  </button>
-                </Link>
-                <Link to="/certifications">
-                  <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
-                    Certifications
-                  </button>
-                </Link>
-                <Link to="/skills">
-                  <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
-                    Skills
-                  </button>
-                </Link>
-                <Link to="/profile">
-                  <button className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors">
-                    About
-                  </button>
-                </Link>
-
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -72,7 +46,7 @@ const Navbar: React.FC = () => {
                   </button>
 
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 shadow-xl py-2 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="absolute right-0 mt-2 w-56 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 shadow-xl py-2 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200">
                       <div className="px-4 py-3 border-b border-white/10 mb-1">
                         <p className="text-sm font-medium text-white truncate">{user?.name}</p>
                         <p className="text-xs text-gray-400 truncate">@{user?.username}</p>
@@ -85,13 +59,43 @@ const Navbar: React.FC = () => {
                       >
                         Profile
                       </Link>
+                      <Link
+                        to="/projects"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                      >
+                        Projects
+                      </Link>
+                      <Link
+                        to="/achievements"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                      >
+                        Achievements
+                      </Link>
+                      <Link
+                        to="/certifications"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                      >
+                        Certifications
+                      </Link>
+                      <Link
+                        to="/skills"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                      >
+                        Skills
+                      </Link>
+
+                      <div className="border-t border-white/10 my-1"></div>
 
                       <button
                         onClick={() => {
                           handleLogout();
                           setIsProfileOpen(false);
                         }}
-                        className="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/10 transition-colors text-left mt-1"
+                        className="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/10 transition-colors text-left"
                       >
                         Logout
                       </button>
@@ -138,14 +142,13 @@ const Navbar: React.FC = () => {
                 </div>
                 <span className="text-gray-200 font-medium">{user?.name}</span>
               </div>
+              <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Profile</Link>
               <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
               <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
-
               <Link to="/certifications" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Certifications</Link>
               <Link to="/skills" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Skills</Link>
 
-              <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Profile</Link>
-              <button onClick={handleLogout} className="bg-white/10 text-white py-2 rounded-lg border border-white/20 hover:bg-white/20">Logout</button>
+              <button onClick={handleLogout} className="bg-white/10 text-white py-2 rounded-lg border border-white/20 hover:bg-white/20 mt-2">Logout</button>
             </>
           ) : (
             <>
