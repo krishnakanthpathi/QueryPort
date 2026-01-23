@@ -41,7 +41,15 @@ const Projects: React.FC = () => {
     // UI State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [activeTab, setActiveTab] = useState<'all' | 'my'>('my');
+    const [activeTab, setActiveTab] = useState<'all' | 'my'>(user ? 'my' : 'all');
+
+    useEffect(() => {
+        if (user) {
+            setActiveTab('my');
+        } else {
+            setActiveTab('all');
+        }
+    }, [user]);
 
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);

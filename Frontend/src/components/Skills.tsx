@@ -15,7 +15,15 @@ const Skills: React.FC = () => {
     const [error, setError] = useState('');
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
+    const [activeTab, setActiveTab] = useState<'my' | 'all'>(user ? 'my' : 'all');
+
+    useEffect(() => {
+        if (user) {
+            setActiveTab('my');
+        } else {
+            setActiveTab('all');
+        }
+    }, [user]);
 
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
