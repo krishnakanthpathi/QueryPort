@@ -15,7 +15,7 @@ const Achievements: React.FC = () => {
     // UI State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
-    const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
+    const [activeTab, setActiveTab] = useState<'all' | 'my'>('my');
 
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
