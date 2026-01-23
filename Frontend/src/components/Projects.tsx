@@ -174,8 +174,23 @@ const Projects: React.FC = () => {
                             Sign In / Register
                         </Link>
                     </div>
-                ) : loading && !isModalOpen && projects.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">Loading projects...</div>
+                ) : loading ? (
+                    <div className="min-h-[50vh] flex flex-col items-center justify-center text-white">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mb-4"></div>
+                        <p className="text-gray-400 animate-pulse">Loading amazing projects...</p>
+                    </div>
+                ) : projects.length === 0 ? (
+                    <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
+                        <div className="mb-4">
+                            <Folder size={48} className="mx-auto text-gray-600" />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2 text-white">No projects found</h3>
+                        <p className="text-gray-400 max-w-md mx-auto">
+                            {activeTab === 'my'
+                                ? "You haven't displayed any projects yet. Create one to show off your work!"
+                                : "No projects have been published yet. Be the first!"}
+                        </p>
+                    </div>
                 ) : (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

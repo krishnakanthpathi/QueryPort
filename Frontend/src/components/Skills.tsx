@@ -152,8 +152,11 @@ const Skills: React.FC = () => {
                             Sign In / Register
                         </Link>
                     </div>
-                ) : loading && skills.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">Loading skills...</div>
+                ) : loading ? (
+                    <div className="min-h-[50vh] flex flex-col items-center justify-center text-white">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mb-4"></div>
+                        <p className="text-gray-400 animate-pulse">Loading skills...</p>
+                    </div>
                 ) : (
                     <>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
