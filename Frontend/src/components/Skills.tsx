@@ -14,6 +14,19 @@ const Skills: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    // Redirect if not authenticated
+    useEffect(() => {
+        if (!loading && !user) {
+            // We can either redirect or just show the login prompt. 
+            // Since we removed it from public nav, users shouldn't really be here unless they direct link.
+            // The existing "My Skills" logic handles !user by showing login prompt.
+            // But if "All" is selected (which is default if we didn't change it, but we did change it to default 'my' if user exists, else 'all').
+            // Wait, if no user, activeTab defaults to 'all'.
+            // We want to force login.
+            // So if !user, we can't view ANYTHING.
+        }
+    }, [user, loading]);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>(user ? 'my' : 'all');
 
@@ -144,91 +157,97 @@ const Skills: React.FC = () => {
 
                 {error && <div className="text-red-500 text-center mb-4">{error}</div>}
 
-                {activeTab === 'my' && !user ? (
+                {!user ? (
                     <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
-                        <h3 className="text-xl font-bold mb-2">Login to view your skills</h3>
-                        <p className="text-gray-400 mb-6">You need to be signed in to manage your skills.</p>
+                        <h3 className="text-xl font-bold mb-2">Login to view skills</h3>
+                        <p className="text-gray-400 mb-6">This feature is only available to registered users.</p>
                         <Link to="/login" className="px-6 py-3 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors">
                             Sign In / Register
                         </Link>
                     </div>
-                ) : loading ? (
-                    <div className="min-h-[50vh] flex flex-col items-center justify-center text-white">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mb-4"></div>
-                        <p className="text-gray-400 animate-pulse">Loading skills...</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {displayedSkills.map((skill) => (
-                                <div key={skill._id} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/30 transition-all duration-300 group hover:-translate-y-1 flex flex-col items-center text-center relative">
-                                    <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center mb-4 p-2">
-                                        <img
-                                            src={skill.image}
-                                            alt={skill.name}
-                                            className="w-full h-full object-contain"
-                                        />
-                                    </div>
-                                    <h3 className="font-bold text-lg leading-tight mb-2">{skill.name}</h3>
+                ) : null}
 
-                                    {activeTab === 'all' && (
-                                        <div className="mt-2">
-                                            {isOwned(skill._id) ? (
-                                                <span className="text-green-400 text-xs flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full">
-                                                    <Check size={12} /> Added
-                                                </span>
-                                            ) : (
+                {user && (
+                    <>
+                        {loading ? (
+                            <div className="min-h-[50vh] flex flex-col items-center justify-center text-white">
+                                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mb-4"></div>
+                                <p className="text-gray-400 animate-pulse">Loading skills...</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                    {displayedSkills.map((skill) => (
+                                        <div key={skill._id} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/30 transition-all duration-300 group hover:-translate-y-1 flex flex-col items-center text-center relative">
+                                            <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center mb-4 p-2">
+                                                <img
+                                                    src={skill.image}
+                                                    alt={skill.name}
+                                                    className="w-full h-full object-contain"
+                                                />
+                                            </div>
+                                            <h3 className="font-bold text-lg leading-tight mb-2">{skill.name}</h3>
+
+                                            {activeTab === 'all' && (
+                                                <div className="mt-2">
+                                                    {isOwned(skill._id) ? (
+                                                        <span className="text-green-400 text-xs flex items-center gap-1 bg-green-400/10 px-2 py-1 rounded-full">
+                                                            <Check size={12} /> Added
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleAddToProfile(skill._id)}
+                                                            className="text-white text-xs flex items-center gap-1 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors"
+                                                        >
+                                                            <Plus size={12} /> Add to Profile
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {activeTab === 'my' && (
                                                 <button
-                                                    onClick={() => handleAddToProfile(skill._id)}
-                                                    className="text-white text-xs flex items-center gap-1 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors"
+                                                    onClick={() => handleRemoveFromProfile(skill._id)}
+                                                    className="absolute top-4 right-4 p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Remove from profile"
                                                 >
-                                                    <Plus size={12} /> Add to Profile
+                                                    <Trash2 size={14} />
                                                 </button>
                                             )}
                                         </div>
-                                    )}
+                                    ))}
 
-                                    {activeTab === 'my' && (
+                                    {displayedSkills.length === 0 && (
+                                        <div className="col-span-full text-center py-20 text-gray-500">
+                                            {activeTab === 'my'
+                                                ? "You haven't added any skills yet. Switch to 'All Skills' or add a new one!"
+                                                : "No skills found. Be the first to create one!"}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {activeTab === 'all' && totalPages > 1 && (
+                                    <div className="flex justify-center mt-8 gap-2">
                                         <button
-                                            onClick={() => handleRemoveFromProfile(skill._id)}
-                                            className="absolute top-4 right-4 p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                            title="Remove from profile"
+                                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                                            disabled={page === 1}
+                                            className="px-4 py-2 bg-white/10 rounded-lg disabled:opacity-50 hover:bg-white/20 transition-colors"
                                         >
-                                            <Trash2 size={14} />
+                                            Previous
                                         </button>
-                                    )}
-                                </div>
-                            ))}
-
-                            {displayedSkills.length === 0 && (
-                                <div className="col-span-full text-center py-20 text-gray-500">
-                                    {activeTab === 'my'
-                                        ? "You haven't added any skills yet. Switch to 'All Skills' or add a new one!"
-                                        : "No skills found. Be the first to create one!"}
-                                </div>
-                            )}
-                        </div>
-
-                        {activeTab === 'all' && totalPages > 1 && (
-                            <div className="flex justify-center mt-8 gap-2">
-                                <button
-                                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                                    disabled={page === 1}
-                                    className="px-4 py-2 bg-white/10 rounded-lg disabled:opacity-50 hover:bg-white/20 transition-colors"
-                                >
-                                    Previous
-                                </button>
-                                <span className="px-4 py-2 text-gray-400">
-                                    Page {page} of {totalPages}
-                                </span>
-                                <button
-                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={page === totalPages}
-                                    className="px-4 py-2 bg-white/10 rounded-lg disabled:opacity-50 hover:bg-white/20 transition-colors"
-                                >
-                                    Next
-                                </button>
-                            </div>
+                                        <span className="px-4 py-2 text-gray-400">
+                                            Page {page} of {totalPages}
+                                        </span>
+                                        <button
+                                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={page === totalPages}
+                                            className="px-4 py-2 bg-white/10 rounded-lg disabled:opacity-50 hover:bg-white/20 transition-colors"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </>
                 )}

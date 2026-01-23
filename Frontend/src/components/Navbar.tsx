@@ -61,13 +61,6 @@ const Navbar: React.FC = () => {
                     >
                       Certifications
                     </Link>
-                    <Link
-                      to="/skills"
-                      onClick={() => setIsExploreOpen(false)}
-                      className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
-                    >
-                      Skills
-                    </Link>
                   </div>
                 )}
               </div>
@@ -174,43 +167,45 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {isMenuOpen && (
-        <div className="md:hidden absolute top-full mt-2 left-0 w-full bg-black/90 backdrop-blur-xl rounded-2xl p-4 border border-white/10 flex flex-col space-y-4 shadow-2xl">
-          {isAuthenticated ? (
-            <>
-              <div className="flex flex-col items-center gap-2 pb-4 border-b border-white/10">
-                <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20">
-                  <img
-                    src={user?.avatar || DEFAULT_AVATAR_URL}
-                    alt={user?.name}
-                    className="w-full h-full object-cover"
-                  />
+      {
+        isMenuOpen && (
+          <div className="md:hidden absolute top-full mt-2 left-0 w-full bg-black/90 backdrop-blur-xl rounded-2xl p-4 border border-white/10 flex flex-col space-y-4 shadow-2xl">
+            {isAuthenticated ? (
+              <>
+                <div className="flex flex-col items-center gap-2 pb-4 border-b border-white/10">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20">
+                    <img
+                      src={user?.avatar || DEFAULT_AVATAR_URL}
+                      alt={user?.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="text-gray-200 font-medium">{user?.name}</span>
                 </div>
-                <span className="text-gray-200 font-medium">{user?.name}</span>
-              </div>
-              <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Profile</Link>
-              <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
-              <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
-              <Link to="/certifications" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Certifications</Link>
-              <Link to="/skills" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Skills</Link>
+                <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Profile</Link>
+                <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
+                <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
+                <Link to="/certifications" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Certifications</Link>
+                <Link to="/skills" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Skills</Link>
 
-              <button onClick={handleLogout} className="bg-white/10 text-white py-2 rounded-lg border border-white/20 hover:bg-white/20 mt-2">Logout</button>
-            </>
-          ) : (
-            <>
-              <div className="text-gray-400 text-xs font-bold uppercase tracking-wider text-center mt-2">Explore</div>
-              <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
-              <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
-              <Link to="/certifications" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Certifications</Link>
-              <Link to="/skills" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Skills</Link>
+                <button onClick={handleLogout} className="bg-white/10 text-white py-2 rounded-lg border border-white/20 hover:bg-white/20 mt-2">Logout</button>
+              </>
+            ) : (
+              <>
+                <div className="text-gray-400 text-xs font-bold uppercase tracking-wider text-center mt-2">Explore</div>
+                <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
+                <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
+                <Link to="/certifications" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Certifications</Link>
+                {/* <Link to="/skills" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Skills</Link> */}
 
-              <div className="border-t border-white/10 my-2"></div>
-              <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-center text-gray-300 py-2 hover:text-white">Login</Link>
-              <Link to="/register" onClick={() => setIsMenuOpen(false)} className="bg-white text-black text-center py-2 rounded-lg font-bold hover:bg-gray-200">Get Started</Link>
-            </>
-          )}
-        </div>
-      )}
+                <div className="border-t border-white/10 my-2"></div>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-center text-gray-300 py-2 hover:text-white">Login</Link>
+                <Link to="/register" onClick={() => setIsMenuOpen(false)} className="bg-white text-black text-center py-2 rounded-lg font-bold hover:bg-gray-200">Get Started</Link>
+              </>
+            )}
+          </div>
+        )
+      }
     </nav>
   );
 };
