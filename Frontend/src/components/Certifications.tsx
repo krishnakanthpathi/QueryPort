@@ -23,11 +23,20 @@ const Certifications: React.FC = () => {
     const fetchCertifications = async () => {
         try {
             setLoading(true);
+
+            if (activeTab === 'my' && !user) {
+                setCertifications([]);
+                setTotalPages(1);
+                setLoading(false);
+                return;
+            }
+
             const endpoint = activeTab === 'my' ? '/certifications/my-certifications' : '/certifications';
             const data = await api.get(`${endpoint}?page=${page}&limit=9`);
             setCertifications(data.data.certifications);
             setTotalPages(data.totalPages || 1);
         } catch (err: any) {
+            console.error(err);
             setError(err.message || 'Failed to fetch certifications');
         } finally {
             setLoading(false);
@@ -36,7 +45,7 @@ const Certifications: React.FC = () => {
 
     useEffect(() => {
         fetchCertifications();
-    }, [activeTab, page]);
+    }, [activeTab, page, user]);
 
     useEffect(() => {
         setPage(1);
@@ -89,28 +98,26 @@ const Certifications: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {user && (
-                            <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
-                                <button
-                                    onClick={() => setActiveTab('all')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'all'
-                                        ? 'bg-white text-black shadow-lg'
-                                        : 'text-gray-400 hover:text-white'
-                                        }`}
-                                >
-                                    All
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('my')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'my'
-                                        ? 'bg-white text-black shadow-lg'
-                                        : 'text-gray-400 hover:text-white'
-                                        }`}
-                                >
-                                    My Certifications
-                                </button>
-                            </div>
-                        )}
+                        <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
+                            <button
+                                onClick={() => setActiveTab('all')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'all'
+                                    ? 'bg-white text-black shadow-lg'
+                                    : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                All
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('my')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'my'
+                                    ? 'bg-white text-black shadow-lg'
+                                    : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                My Certifications
+                            </button>
+                        </div>
 
                         {user && (
                             <button
@@ -126,7 +133,15 @@ const Certifications: React.FC = () => {
 
                 {error && <div className="text-red-500 text-center mb-4">{error}</div>}
 
-                {loading && !isModalOpen && certifications.length === 0 ? (
+                {activeTab === 'my' && !user ? (
+                    <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
+                        <h3 className="text-xl font-bold mb-2">Login to view your certifications</h3>
+                        <p className="text-gray-400 mb-6">You need to be signed in to manage your certifications.</p>
+                        <Link to="/login" className="px-6 py-3 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors">
+                            Sign In / Register
+                        </Link>
+                    </div>
+                ) : loading && !isModalOpen && certifications.length === 0 ? (
                     <div className="text-center py-20 text-gray-400">Loading certifications...</div>
                 ) : (
                     <>

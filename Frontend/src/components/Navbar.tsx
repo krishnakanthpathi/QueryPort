@@ -10,6 +10,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -27,6 +28,51 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8 ml-8">
+            {!isAuthenticated && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsExploreOpen(!isExploreOpen)}
+                  className="flex items-center gap-1 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                >
+                  Explore
+                  <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isExploreOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isExploreOpen && (
+                  <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 shadow-xl py-2 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <Link
+                      to="/projects"
+                      onClick={() => setIsExploreOpen(false)}
+                      className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                    >
+                      Projects
+                    </Link>
+                    <Link
+                      to="/achievements"
+                      onClick={() => setIsExploreOpen(false)}
+                      className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                    >
+                      Achievements
+                    </Link>
+                    <Link
+                      to="/certifications"
+                      onClick={() => setIsExploreOpen(false)}
+                      className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                    >
+                      Certifications
+                    </Link>
+                    <Link
+                      to="/skills"
+                      onClick={() => setIsExploreOpen(false)}
+                      className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                    >
+                      Skills
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
             {isAuthenticated ? (
               <>
                 <div className="relative">
@@ -152,6 +198,13 @@ const Navbar: React.FC = () => {
             </>
           ) : (
             <>
+              <div className="text-gray-400 text-xs font-bold uppercase tracking-wider text-center mt-2">Explore</div>
+              <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
+              <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
+              <Link to="/certifications" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Certifications</Link>
+              <Link to="/skills" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Skills</Link>
+
+              <div className="border-t border-white/10 my-2"></div>
               <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-center text-gray-300 py-2 hover:text-white">Login</Link>
               <Link to="/register" onClick={() => setIsMenuOpen(false)} className="bg-white text-black text-center py-2 rounded-lg font-bold hover:bg-gray-200">Get Started</Link>
             </>

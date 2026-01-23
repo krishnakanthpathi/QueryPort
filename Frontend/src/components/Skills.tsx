@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Check } from 'lucide-react';
@@ -22,6 +23,13 @@ const Skills: React.FC = () => {
     const fetchSkills = async () => {
         try {
             setLoading(true);
+
+            if (activeTab === 'my' && !user) {
+                setUserSkills([]);
+                setLoading(false);
+                return;
+            }
+
             // Fetch All Skills
             if (activeTab === 'all') {
                 const allRes = await api.get(`/skills?page=${page}&limit=12`);
@@ -29,14 +37,13 @@ const Skills: React.FC = () => {
                 setTotalPages(allRes.totalPages || 1);
             }
 
-            // Fetch My Skills (always fetch to check ownership if logged in, but optimized: 
-            // actually we only need my skills if activeTab is 'my' OR to check ownership status when on 'all')
-            // For now, let's keep it simple. If valid user, fetch my skills.
+            // Fetch My Skills
             if (user) {
                 const myRes = await api.get('/skills/my-skills');
                 setUserSkills(myRes.data.skills);
             }
         } catch (err: any) {
+            console.error(err);
             setError(err.message || 'Failed to fetch skills');
         } finally {
             setLoading(false);
@@ -94,28 +101,26 @@ const Skills: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {user && (
-                            <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
-                                <button
-                                    onClick={() => setActiveTab('my')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'my'
-                                        ? 'bg-white text-black shadow-lg'
-                                        : 'text-gray-400 hover:text-white'
-                                        }`}
-                                >
-                                    My Skills
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('all')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'all'
-                                        ? 'bg-white text-black shadow-lg'
-                                        : 'text-gray-400 hover:text-white'
-                                        }`}
-                                >
-                                    All Skills
-                                </button>
-                            </div>
-                        )}
+                        <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
+                            <button
+                                onClick={() => setActiveTab('my')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'my'
+                                    ? 'bg-white text-black shadow-lg'
+                                    : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                My Skills
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('all')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'all'
+                                    ? 'bg-white text-black shadow-lg'
+                                    : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                All Skills
+                            </button>
+                        </div>
 
                         {user && (
                             <button
@@ -131,7 +136,15 @@ const Skills: React.FC = () => {
 
                 {error && <div className="text-red-500 text-center mb-4">{error}</div>}
 
-                {loading && skills.length === 0 ? (
+                {activeTab === 'my' && !user ? (
+                    <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
+                        <h3 className="text-xl font-bold mb-2">Login to view your skills</h3>
+                        <p className="text-gray-400 mb-6">You need to be signed in to manage your skills.</p>
+                        <Link to="/login" className="px-6 py-3 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors">
+                            Sign In / Register
+                        </Link>
+                    </div>
+                ) : loading && skills.length === 0 ? (
                     <div className="text-center py-20 text-gray-400">Loading skills...</div>
                 ) : (
                     <>
