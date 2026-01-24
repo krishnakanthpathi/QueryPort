@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityCalendar } from 'react-activity-calendar';
 import { Tooltip } from 'react-tooltip';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { ExternalLink, Trophy, Star, Code } from 'lucide-react';
+import { ExternalLink, Trophy, Star, Code, Activity, TrendingUp } from 'lucide-react';
 import type { Profile } from '../types';
 
 interface TitleProps {
@@ -267,67 +267,32 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                             username={profiles.leetcode}
                             link={`https://leetcode.com/${profiles.leetcode}`}
                         />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Stats & Heatmap */}
-                            <div className="space-y-6">
-                                {/* Stats Rows */}
-                                {leetcodeStats && (
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-3 text-center">
-                                            <div className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">Easy</div>
-                                            <div className="text-xl font-bold">{leetcodeStats.easySolved}</div>
-                                        </div>
-                                        <div className="bg-black/40 border border-yellow-500/20 rounded-lg p-3 text-center">
-                                            <div className="text-yellow-400 text-xs font-bold uppercase tracking-wider mb-1">Medium</div>
-                                            <div className="text-xl font-bold">{leetcodeStats.mediumSolved}</div>
-                                        </div>
-                                        <div className="bg-black/40 border border-red-500/20 rounded-lg p-3 text-center">
-                                            <div className="text-red-400 text-xs font-bold uppercase tracking-wider mb-1">Hard</div>
-                                            <div className="text-xl font-bold">{leetcodeStats.hardSolved}</div>
-                                        </div>
-                                    </div>
-                                )}
+                        <div className="flex flex-col gap-8">
+                            {/* Top Section: Heatmap (Left) & Stats (Right) */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                                {/* Contest Info Card */}
-                                {leetcodeStats?.contestRating && (
-                                    <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-xl p-4 flex items-center justify-between">
-                                        <div>
-                                            <div className="text-orange-400 text-xs font-bold uppercase tracking-wider mb-1">Contest Rating</div>
-                                            <div className="text-2xl font-bold text-white flex items-baseline gap-2">
-                                                {Math.round(leetcodeStats.contestRating)}
-                                                {leetcodeStats.contestBadge && (
-                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30">
-                                                        {leetcodeStats.contestBadge}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="text-xs text-gray-500 mt-1">Global Rank: #{leetcodeStats.contestGlobalRanking?.toLocaleString()}</div>
-                                        </div>
-                                        <Trophy className="text-orange-500 opacity-80" size={32} />
-                                    </div>
-                                )}
-
-                                {/* Heatmap */}
-                                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                    <h4 className="text-sm text-gray-400 mb-3 flex justify-between items-center">
-                                        <span>Submission Activity</span>
-                                        {leetcodeStats && <span className="text-xs text-white bg-white/10 px-2 py-1 rounded">Total: {leetcodeStats.totalSolved}</span>}
+                                {/* Left: Heatmap & Activity */}
+                                <div className="lg:col-span-2 bg-black/30 p-6 rounded-xl border border-white/5 flex flex-col justify-center">
+                                    <h4 className="text-sm text-gray-400 mb-4 font-medium flex items-center gap-2">
+                                        <Activity size={16} />
+                                        Submission Activity
                                     </h4>
                                     <div className="w-full overflow-x-auto">
-                                        <div className="min-w-[300px]">
+                                        <div className="min-w-[500px]">
                                             {loadingLeetcode ? (
-                                                <div className="py-8 text-center text-gray-500 text-sm animate-pulse">Loading...</div>
+                                                <div className="py-12 text-center text-gray-500 text-sm animate-pulse">Loading activity...</div>
                                             ) : getYearData(leetcodeData).length > 0 ? (
                                                 <>
                                                     <ActivityCalendar
                                                         data={getYearData(leetcodeData)}
                                                         theme={{
                                                             light: ['#ebedf0', '#f0d965', '#e6c830', '#c8a815', '#a08600'],
-                                                            dark: ['#2d333b', '#605210', '#a48b1d', '#d6b826', '#facc15'] // Brighter Golden Yellows
+                                                            dark: ['#2d333b', '#605210', '#a48b1d', '#d6b826', '#facc15']
                                                         }}
                                                         colorScheme="dark"
-                                                        blockSize={10}
-                                                        blockMargin={3}
+                                                        blockSize={13}
+                                                        blockMargin={4}
+                                                        fontSize={12}
                                                         renderBlock={(block: React.ReactElement, activity: any) =>
                                                             React.cloneElement(block as React.ReactElement<any>, {
                                                                 'data-tooltip-id': 'leetcode-tooltip',
@@ -338,34 +303,110 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                                     <Tooltip id="leetcode-tooltip" />
                                                 </>
                                             ) : (
-                                                <div className="py-8 text-center text-gray-500 text-sm">No activity found.</div>
+                                                <div className="py-12 text-center text-gray-500 text-sm">No activity found.</div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Right: Stats & Breakdown */}
+                                <div className="space-y-4">
+                                    {/* Total Solved Card */}
+                                    {leetcodeStats && (
+                                        <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-xl p-6 relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                <Trophy size={64} />
+                                            </div>
+                                            <div className="relative z-10">
+                                                <div className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">Total Solved</div>
+                                                <div className="text-4xl font-black text-white">{leetcodeStats.totalSolved}</div>
+                                                <div className="text-xs text-gray-500 mt-2">Questions conquered across all difficulties</div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Difficulty Grid */}
+                                    {leetcodeStats && (
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-3 text-center hover:bg-emerald-500/5 transition-colors">
+                                                <div className="text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-1">Easy</div>
+                                                <div className="text-lg font-bold">{leetcodeStats.easySolved}</div>
+                                            </div>
+                                            <div className="bg-black/40 border border-yellow-500/20 rounded-lg p-3 text-center hover:bg-yellow-500/5 transition-colors">
+                                                <div className="text-yellow-400 text-[10px] font-bold uppercase tracking-wider mb-1">Medium</div>
+                                                <div className="text-lg font-bold">{leetcodeStats.mediumSolved}</div>
+                                            </div>
+                                            <div className="bg-black/40 border border-red-500/20 rounded-lg p-3 text-center hover:bg-red-500/5 transition-colors">
+                                                <div className="text-red-400 text-[10px] font-bold uppercase tracking-wider mb-1">Hard</div>
+                                                <div className="text-lg font-bold">{leetcodeStats.hardSolved}</div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Contest Info Card (Compact) */}
+                                    {leetcodeStats?.contestRating && (
+                                        <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-xl p-4 flex items-center justify-between">
+                                            <div>
+                                                <div className="text-orange-400 text-[10px] font-bold uppercase tracking-wider mb-1">Contest Rating</div>
+                                                <div className="text-xl font-bold text-white flex items-baseline gap-2">
+                                                    {Math.round(leetcodeStats.contestRating)}
+                                                    {leetcodeStats.contestBadge && (
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                                            {leetcodeStats.contestBadge}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="text-[10px] text-gray-500 mt-1">Global Rank: #{leetcodeStats.contestGlobalRanking?.toLocaleString()}</div>
+                                            </div>
+                                            <Trophy className="text-orange-500 opacity-80" size={24} />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Contest Ratings */}
-                            <div className="bg-black/30 p-4 rounded-xl border border-white/5 min-h-[300px]">
-                                <h4 className="text-sm text-gray-400 mb-1 flex justify-between">
-                                    <span>Contest Rating History</span>
-                                    {/* {leetcodeRating.length > 0 && <span className="text-white font-bold">Max: {Math.max(...leetcodeRating.map(r => r.rating))}</span>} */}
+                            {/* Bottom Section: Contest Graph */}
+                            <div className="bg-black/30 p-6 rounded-xl border border-white/5 min-h-[300px]">
+                                <h4 className="text-sm text-gray-400 mb-6 flex justify-between items-center">
+                                    <span className="flex items-center gap-2">
+                                        <TrendingUp size={16} /> Contest Rating History
+                                    </span>
                                 </h4>
                                 {leetcodeRating.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height={280}>
-                                        <LineChart data={leetcodeRating}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                            <XAxis dataKey="date" hide />
-                                            <YAxis stroke="#666" domain={['dataMin - 50', 'dataMax + 50']} />
-                                            <RechartsTooltip
-                                                contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }}
-                                                itemStyle={{ color: '#facc15' }} // Yellow for LeetCode
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <LineChart data={leetcodeRating} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                                            <XAxis
+                                                dataKey="date"
+                                                stroke="#666"
+                                                fontSize={12}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                minTickGap={30}
                                             />
-                                            <Line type="monotone" dataKey="rating" stroke="#facc15" strokeWidth={2} dot={{ r: 2 }} activeDot={{ r: 4 }} />
+                                            <YAxis
+                                                stroke="#666"
+                                                fontSize={12}
+                                                domain={['dataMin - 100', 'dataMax + 100']}
+                                                tickLine={false}
+                                                axisLine={false}
+                                            />
+                                            <RechartsTooltip
+                                                contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px' }}
+                                                itemStyle={{ color: '#facc15' }}
+                                                labelStyle={{ color: '#999', marginBottom: '4px' }}
+                                            />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="rating"
+                                                stroke="#facc15"
+                                                strokeWidth={3}
+                                                dot={false}
+                                                activeDot={{ r: 6, fill: '#facc15', stroke: '#000', strokeWidth: 2 }}
+                                            />
                                         </LineChart>
                                     </ResponsiveContainer>
                                 ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-gray-500 text-sm">
+                                    <div className="h-[250px] flex flex-col items-center justify-center text-gray-500 text-sm">
                                         <div className="mb-2">No contest data available</div>
                                         <div className="text-xs opacity-60">
                                             {loadingLeetcode ? "Fetching data..." : "Attend contests to see your rating graph!"}
