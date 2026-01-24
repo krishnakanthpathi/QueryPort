@@ -6,6 +6,8 @@ import achievementRoutes from './achievementsRoutes.js';
 import certificationRoutes from './certificationsRoutes.js';
 import skillRoutes from './skillRoutes.js';
 
+import leetcodeRoutes from './leetcodeRoutes.js';
+
 
 const router = express.Router();
 
@@ -15,6 +17,8 @@ router.use("/projects", projectRoutes);
 router.use("/achievements", achievementRoutes);
 router.use("/certifications", certificationRoutes);
 router.use("/skills", skillRoutes);
+router.use("/leetcode", leetcodeRoutes);
+
 
 
 export default router;

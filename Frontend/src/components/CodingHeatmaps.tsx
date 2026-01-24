@@ -3,6 +3,7 @@ import { ActivityCalendar } from 'react-activity-calendar';
 import { Tooltip } from 'react-tooltip';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { ExternalLink, Trophy, Star, Code, Activity, TrendingUp } from 'lucide-react';
+import { api } from '../lib/api';
 import type { Profile } from '../types';
 
 interface TitleProps {
@@ -86,61 +87,144 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
         setLoadingLeetcode(true);
         const fetchLeetcode = async () => {
             try {
-                // Fetch Stats & Calendar
-                const statsRes = await fetch(`https://leetcode-stats-api.herokuapp.com/${profiles.leetcode}`);
-                const statsData = await statsRes.json();
+                // Fetch User Stats (Total Problems)
+                // Using standard LeetCode GraphQL query for stats
+                const statsQuery = {
+                    query: `
+                        query userProblemsSolved($username: String!) {
+                            matchedUser(username: $username) {
+                                submitStats: submitStatsGlobal {
+                                    acSubmissionNum {
+                                        difficulty
+                                        count
+                                        submissions
+                                    }
+                                }
+                            }
+                        }
+                    `,
+                    variables: { username: profiles.leetcode }
+                };
 
-                if (statsData.status === 'success') {
-                    // Set Stats
-                    setLeetcodeStats({
-                        totalSolved: statsData.totalSolved,
-                        easySolved: statsData.easySolved,
-                        mediumSolved: statsData.mediumSolved,
-                        hardSolved: statsData.hardSolved,
-                        ranking: statsData.ranking
-                    });
 
-                    // Set Calendar
-                    if (statsData.submissionCalendar) {
-                        const calendar = statsData.submissionCalendar;
-                        const formatted = Object.keys(calendar).map(timestamp => {
-                            const date = new Date(parseInt(timestamp) * 1000).toISOString().split('T')[0];
-                            return {
-                                date,
-                                count: calendar[timestamp],
-                                level: Math.min(4, Math.ceil(calendar[timestamp] / 3))
-                            };
-                        }).sort((a, b) => a.date.localeCompare(b.date));
-                        setLeetcodeData(formatted);
-                    }
+
+
+                const statsRes = await api.post('/leetcode', statsQuery);
+                const statsData = statsRes.data;
+
+                if (statsData?.matchedUser?.submitStats?.acSubmissionNum) {
+                    const submissionNum = statsData.matchedUser.submitStats.acSubmissionNum;
+                    const total = submissionNum.find((s: any) => s.difficulty === 'All')?.count || 0;
+                    const easy = submissionNum.find((s: any) => s.difficulty === 'Easy')?.count || 0;
+                    const medium = submissionNum.find((s: any) => s.difficulty === 'Medium')?.count || 0;
+                    const hard = submissionNum.find((s: any) => s.difficulty === 'Hard')?.count || 0;
+
+                    setLeetcodeStats((prev: any) => ({
+                        ...prev,
+                        totalSolved: total,
+                        easySolved: easy,
+                        mediumSolved: medium,
+                        hardSolved: hard
+                    }));
                 }
 
-                // Fetch Contest Rating History
-                // Attempt to fetch from alfa-leetcode-api which often provides contest history
-                const ratingRes = await fetch(`https://alfa-leetcode-api.onrender.com/${profiles.leetcode}/contest`);
-                if (ratingRes.ok) {
-                    const ratingData = await ratingRes.json();
+                // Fetch Contest Ranking & History
+                // Using user provided query
+                const contestQuery = {
+                    query: `
+                        query userContestRankingInfo($username: String!) {
+                            userContestRanking(username: $username) {
+                                attendedContestsCount
+                                rating
+                                globalRanking
+                                totalParticipants
+                                topPercentage
+                                badge {
+                                    name
+                                }
+                            }
+                            userContestRankingHistory(username: $username) {
+                                attended
+                                rating
+                                ranking
+                                contest {
+                                    title
+                                    startTime
+                                }
+                            }
+                        }
+                    `,
+                    variables: { username: profiles.leetcode }
+                };
 
-                    // Update stats with contest info if available
-                    if (ratingData.contestRating) {
-                        setLeetcodeStats((prev: any) => ({
-                            ...prev,
-                            contestRating: ratingData.contestRating,
-                            contestGlobalRanking: ratingData.contestGlobalRanking,
-                            contestBadge: ratingData.contestBadges?.name
-                        }));
-                    }
+                const contestRes = await api.post('/leetcode', contestQuery);
+                const contestData = contestRes.data;
 
-                    if (ratingData.contestParticipation) {
-                        const history = ratingData.contestParticipation.map((contest: any) => ({
+                if (contestData?.userContestRanking) {
+                    const ranking = contestData.userContestRanking;
+                    setLeetcodeStats((prev: any) => ({
+                        ...prev,
+                        contestRating: ranking.rating,
+                        contestGlobalRanking: ranking.globalRanking,
+                        contestBadge: ranking.badge?.name,
+                        totalParticipants: ranking.totalParticipants,
+                        topPercentage: ranking.topPercentage
+                    }));
+                }
+
+                if (contestData?.userContestRankingHistory) {
+                    const history = contestData.userContestRankingHistory
+                        .filter((contest: any) => contest.attended)
+                        .map((contest: any) => ({
                             contest: contest.contest.title,
                             rating: Math.round(contest.rating),
                             date: new Date(contest.contest.startTime * 1000).toLocaleDateString()
-                        })).filter((c: any) => c.rating > 0); // Filter out 0 ratings
-                        setLeetcodeRating(history);
-                    }
-                } else {
-                    console.warn("Contest API returned error status:", ratingRes.status);
+                        }));
+                    setLeetcodeRating(history);
+                }
+
+                // Heatmap Data - Submission Calendar
+                // We need a separate query for calendar or use the stats API if allowed. 
+                // Since user provided specific queries for contest and stats, I will use a separate query for calendar if needed, 
+                // BUT the user prompt didn't explicitly provide a calendar query. 
+                // Standard LeetCode query for calendar:
+                const calendarQuery = {
+                    query: `
+                        query userProfileCalendar($username: String!, $year: Int) {
+                            matchedUser(username: $username) {
+                                userCalendar(year: $year) {
+                                    activeYears
+                                    streak
+                                    totalActiveDays
+                                    dccBadges {
+                                        timestamp
+                                        badge {
+                                            name
+                                            icon
+                                        }
+                                    }
+                                    submissionCalendar
+                                }
+                            }
+                        }
+                   `,
+                    variables: { username: profiles.leetcode }
+                };
+
+                const calendarRes = await api.post('/leetcode', calendarQuery);
+                const calendarData = calendarRes.data;
+
+                if (calendarData?.matchedUser?.userCalendar?.submissionCalendar) {
+                    const calendar = JSON.parse(calendarData.matchedUser.userCalendar.submissionCalendar);
+                    const formatted = Object.keys(calendar).map(timestamp => {
+                        const date = new Date(parseInt(timestamp) * 1000).toISOString().split('T')[0];
+                        return {
+                            date,
+                            count: calendar[timestamp],
+                            level: Math.min(4, Math.ceil(calendar[timestamp] / 3))
+                        };
+                    }).sort((a: any, b: any) => a.date.localeCompare(b.date));
+                    setLeetcodeData(formatted);
                 }
 
             } catch (e) {
