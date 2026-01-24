@@ -28,6 +28,9 @@ interface Props {
 }
 
 const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
+    // Year Selection
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
     // GitHub State
     const [githubData, setGithubData] = useState<any[]>([]);
     const [loadingGithub, setLoadingGithub] = useState(false);
@@ -46,6 +49,10 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
 
     // HackerRank State
     const [hackerrankData, setHackerrankData] = useState<any[]>([]);
+
+    // Generate years list (e.g., current year down to 2015)
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: currentYear - 2014 }, (_, i) => currentYear - i);
 
     // HackerRank Fetch
     useEffect(() => {
@@ -67,12 +74,12 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
     }, [profiles.hackerrank]);
 
     // Helpers
-    const getYearData = (data: any[]) => {
+    const getYearData = (data: any[], year: number) => {
         if (!data || data.length === 0) return [];
-        const today = new Date();
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(today.getFullYear() - 1);
-        return data.filter(day => new Date(day.date) >= oneYearAgo);
+        return data.filter(day => {
+            const date = new Date(day.date);
+            return date.getFullYear() === year;
+        });
     };
 
     // GitHub Fetch
@@ -81,7 +88,8 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
         setLoadingGithub(true);
         const fetchGithub = async () => {
             try {
-                const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${profiles.github}?y=last`);
+                // y=last fetches last 365 days. y=Y fetches specific year.
+                const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${profiles.github}?y=${selectedYear}`);
                 const data = await res.json();
 
                 if (data.contributions) {
@@ -93,15 +101,19 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                     setGithubData(formatted);
                 } else if (data.error) {
                     console.error("GitHub API Error:", data.error);
+                    setGithubData([]);
+                } else {
+                    setGithubData([]);
                 }
             } catch (e) {
                 console.error("Failed to fetch GitHub data", e);
+                setGithubData([]);
             } finally {
                 setLoadingGithub(false);
             }
         };
         fetchGithub();
-    }, [profiles.github]);
+    }, [profiles.github, selectedYear]);
 
     // LeetCode Fetch
     useEffect(() => {
@@ -206,31 +218,18 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                 }
 
                 // Heatmap Data - Submission Calendar
-                // We need a separate query for calendar or use the stats API if allowed. 
-                // Since user provided specific queries for contest and stats, I will use a separate query for calendar if needed, 
-                // BUT the user prompt didn't explicitly provide a calendar query. 
-                // Standard LeetCode query for calendar:
+                // We fetch the calendar specifically for the selected year
                 const calendarQuery = {
                     query: `
                         query userProfileCalendar($username: String!, $year: Int) {
                             matchedUser(username: $username) {
                                 userCalendar(year: $year) {
-                                    activeYears
-                                    streak
-                                    totalActiveDays
-                                    dccBadges {
-                                        timestamp
-                                        badge {
-                                            name
-                                            icon
-                                        }
-                                    }
                                     submissionCalendar
                                 }
                             }
                         }
                    `,
-                    variables: { username: profiles.leetcode }
+                    variables: { username: profiles.leetcode, year: selectedYear }
                 };
 
                 const calendarRes = await api.post('/leetcode', calendarQuery);
@@ -247,6 +246,8 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                         };
                     }).sort((a: any, b: any) => a.date.localeCompare(b.date));
                     setLeetcodeData(formatted);
+                } else {
+                    setLeetcodeData([]);
                 }
 
             } catch (e) {
@@ -256,7 +257,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
             }
         };
         fetchLeetcode();
-    }, [profiles.leetcode]);
+    }, [profiles.leetcode, selectedYear]);
 
     // Codeforces Fetch
     useEffect(() => {
@@ -319,7 +320,22 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
 
     return (
         <div className="space-y-8 mt-12 mb-20">
-            <h2 className="text-3xl font-bold border-b border-white/10 pb-4">Coding Activity</h2>
+            <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                <h2 className="text-3xl font-bold">Coding Activity</h2>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-400">Year:</span>
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                        className="bg-black/80 border border-white/20 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                    >
+                        {years.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* GitHub */}
@@ -334,7 +350,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                         <div className="w-full overflow-x-auto">
                             <div className="min-w-[500px]">
                                 {loadingGithub ? (
-                                    <div className="py-8 text-center text-gray-500 text-sm animate-pulse">Loading GitHub activity...</div>
+                                    <div className="py-8 text-center text-gray-500 text-sm animate-pulse">Loading GitHub activity for {selectedYear}...</div>
                                 ) : githubData.length > 0 ? (
                                     <>
                                         <ActivityCalendar
@@ -356,7 +372,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                     </>
                                 ) : (
                                     <div className="py-8 text-center text-gray-500 text-sm">
-                                        No activity found.
+                                        No activity found in {selectedYear}.
                                     </div>
                                 )}
                             </div>
@@ -381,16 +397,16 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                 <div className="lg:col-span-2 bg-black/30 p-6 rounded-xl border border-white/5 flex flex-col justify-center">
                                     <h4 className="text-sm text-gray-400 mb-4 font-medium flex items-center gap-2">
                                         <Activity size={16} />
-                                        Submission Activity
+                                        Submission Activity ({selectedYear})
                                     </h4>
                                     <div className="w-full overflow-x-auto">
                                         <div className="min-w-[500px]">
                                             {loadingLeetcode ? (
                                                 <div className="py-12 text-center text-gray-500 text-sm animate-pulse">Loading activity...</div>
-                                            ) : getYearData(leetcodeData).length > 0 ? (
+                                            ) : leetcodeData.length > 0 ? (
                                                 <>
                                                     <ActivityCalendar
-                                                        data={getYearData(leetcodeData)}
+                                                        data={leetcodeData}
                                                         theme={{
                                                             light: ['#ebedf0', '#f0d965', '#e6c830', '#c8a815', '#a08600'],
                                                             dark: ['#2d333b', '#605210', '#a48b1d', '#d6b826', '#facc15']
@@ -409,7 +425,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                                     <Tooltip id="leetcode-tooltip" />
                                                 </>
                                             ) : (
-                                                <div className="py-12 text-center text-gray-500 text-sm">No activity found.</div>
+                                                <div className="py-12 text-center text-gray-500 text-sm">No activity found in {selectedYear}.</div>
                                             )}
                                         </div>
                                     </div>
@@ -542,9 +558,9 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                     <div className="min-w-[300px]">
                                         {loadingCodeforces ? (
                                             <div className="py-8 text-center text-gray-500 text-sm animate-pulse">Loading...</div>
-                                        ) : getYearData(codeforcesData).length > 0 ? (
+                                        ) : getYearData(codeforcesData, selectedYear).length > 0 ? (
                                             <ActivityCalendar
-                                                data={getYearData(codeforcesData)}
+                                                data={getYearData(codeforcesData, selectedYear)}
                                                 theme={{
                                                     light: ['#ebedf0', '#1a3a5f', '#1d5a9e', '#3b8cea', '#80bfff'],
                                                     dark: ['#2d333b', '#1a3a5f', '#1d5a9e', '#3b8cea', '#80bfff']
@@ -554,7 +570,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                                 blockMargin={3}
                                             />
                                         ) : (
-                                            <div className="py-8 text-center text-gray-500 text-sm">No activity found.</div>
+                                            <div className="py-8 text-center text-gray-500 text-sm">No activity found in {selectedYear}.</div>
                                         )}
                                     </div>
                                 </div>
