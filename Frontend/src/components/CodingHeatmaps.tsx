@@ -595,38 +595,33 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {hackerrankData.slice(0, 6).map((badge: any, i: number) => (
-                            <div key={i} className="bg-black/40 border border-white/10 rounded-xl p-4 flex flex-col gap-3 hover:border-green-500/50 transition-colors group">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h4 className="font-bold text-lg text-white group-hover:text-green-400 transition-colors">{badge.badge_name || badge.badge_type}</h4>
-                                        <p className="text-xs text-gray-500">{badge.category_name || "Domain"}</p>
+                        {hackerrankData
+                            .filter((badge: any) => badge.stars > 0)
+                            .map((badge: any, i: number) => (
+                                <div key={i} className="bg-black/40 border border-white/10 rounded-xl p-4 flex flex-col gap-3 hover:border-green-500/50 transition-colors group">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-bold text-lg text-white group-hover:text-green-400 transition-colors">{badge.badge_name || badge.badge_type}</h4>
+                                            <p className="text-xs text-gray-500">{badge.category_name || "Domain"}</p>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {[...Array(5)].map((_, starI) => (
+                                                <Star
+                                                    key={starI}
+                                                    size={12}
+                                                    className={starI < badge.stars ? "text-yellow-500 fill-yellow-500" : "text-gray-700"}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="flex gap-1">
-                                        {[...Array(5)].map((_, starI) => (
-                                            <Star
-                                                key={starI}
-                                                size={12}
-                                                className={starI < badge.stars ? "text-yellow-500 fill-yellow-500" : "text-gray-700"}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
 
-                                <div className="mt-auto pt-2 border-t border-white/5 flex justify-between text-xs text-gray-400">
-                                    <span>{badge.solved} Solved</span>
-                                    <span>{badge.current_points} Points</span>
+                                    <div className="mt-auto pt-2 border-t border-white/5 flex justify-between text-xs text-gray-400">
+                                        <span>{badge.solved} Solved</span>
+                                        <span>{badge.current_points} Points</span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
                     </div>
-                    {hackerrankData.length > 6 && (
-                        <div className="text-center mt-4">
-                            <a href={`https://www.hackerrank.com/${profiles.hackerrank}`} target="_blank" rel="noreferrer" className="text-sm text-gray-500 hover:text-white transition-colors">
-                                + {hackerrankData.length - 6} more badges on HackerRank
-                            </a>
-                        </div>
-                    )}
                 </div>
             )}
 
