@@ -44,6 +44,28 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
     const [cfInfo, setCfInfo] = useState<any>(null);
     const [loadingCodeforces, setLoadingCodeforces] = useState(false);
 
+    // HackerRank State
+    const [hackerrankData, setHackerrankData] = useState<any[]>([]);
+
+    // HackerRank Fetch
+    useEffect(() => {
+        if (!profiles.hackerrank) return;
+
+        const fetchHackerRank = async () => {
+            try {
+                // Fetch Badges using our backend proxy
+                const badgesRes = await api.get(`/hackerrank/${profiles.hackerrank}/badges`);
+
+                if (badgesRes.models) {
+                    setHackerrankData(badgesRes.models);
+                }
+            } catch (e) {
+                console.error("Failed to fetch HackerRank data", e);
+            }
+        };
+        fetchHackerRank();
+    }, [profiles.hackerrank]);
+
     // Helpers
     const getYearData = (data: any[]) => {
         if (!data || data.length === 0) return [];
@@ -562,27 +584,62 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                 )}
             </div>
 
-            {/* Badges Section */}
-            {(profiles.hackerrank || profiles.codechef) && (
+            {/* Badges Section - HackerRank */}
+            {(profiles.hackerrank && hackerrankData.length > 0) && (
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl mt-8">
-                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                        <Trophy className="text-yellow-500" />
-                        Badges & Achievements
-                    </h3>
-                    <div className="flex flex-wrap gap-8">
-                        {profiles.hackerrank && (
-                            <div className="flex flex-col items-center gap-3">
-                                <a href={`https://www.hackerrank.com/${profiles.hackerrank}`} target="_blank" rel="noreferrer" className="transform hover:scale-105 transition-transform">
-                                    <img
-                                        src={`https://hackerrank-badge.vercel.app/api?username=${profiles.hackerrank}`}
-                                        alt="HackerRank Badge"
-                                        className="h-32"
-                                    />
-                                </a>
-                                <p className="text-sm text-gray-400">HackerRank</p>
+                    <SectionTitle
+                        title="HackerRank Badges"
+                        icon={<Trophy className="text-green-500" size={18} />}
+                        username={profiles.hackerrank}
+                        link={`https://www.hackerrank.com/${profiles.hackerrank}`}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {hackerrankData.slice(0, 6).map((badge: any, i: number) => (
+                            <div key={i} className="bg-black/40 border border-white/10 rounded-xl p-4 flex flex-col gap-3 hover:border-green-500/50 transition-colors group">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h4 className="font-bold text-lg text-white group-hover:text-green-400 transition-colors">{badge.badge_name || badge.badge_type}</h4>
+                                        <p className="text-xs text-gray-500">{badge.category_name || "Domain"}</p>
+                                    </div>
+                                    <div className="flex gap-1">
+                                        {[...Array(5)].map((_, starI) => (
+                                            <Star
+                                                key={starI}
+                                                size={12}
+                                                className={starI < badge.stars ? "text-yellow-500 fill-yellow-500" : "text-gray-700"}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto pt-2 border-t border-white/5 flex justify-between text-xs text-gray-400">
+                                    <span>{badge.solved} Solved</span>
+                                    <span>{badge.current_points} Points</span>
+                                </div>
                             </div>
-                        )}
-                        {/* CodeChef doesn't have a reliable badge generator API. We'll use a link card. */}
+                        ))}
+                    </div>
+                    {hackerrankData.length > 6 && (
+                        <div className="text-center mt-4">
+                            <a href={`https://www.hackerrank.com/${profiles.hackerrank}`} target="_blank" rel="noreferrer" className="text-sm text-gray-500 hover:text-white transition-colors">
+                                + {hackerrankData.length - 6} more badges on HackerRank
+                            </a>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Badges Fallback / CodeChef */}
+            {(profiles.codechef && !profiles.hackerrank) && (
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl mt-8">
+                    <SectionTitle
+                        title="Achievements"
+                        icon={<Trophy className="text-yellow-500" size={18} />}
+                        username={profiles.codechef}
+                        link={`https://www.codechef.com/users/${profiles.codechef}`}
+                    />
+                    <div className="flex flex-wrap gap-8">
                         {profiles.codechef && (
                             <a href={`https://www.codechef.com/users/${profiles.codechef}`} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center w-32 h-32 bg-black/40 border border-white/20 rounded-xl hover:bg-white/10 transition-colors group">
                                 <Star size={32} className="text-amber-700 mb-2 group-hover:text-amber-500 transition-colors" />
