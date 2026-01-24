@@ -28,20 +28,24 @@ interface Props {
 }
 
 const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
-    // Year Selection
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    // Generate years list (e.g., current year down to 2015)
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: currentYear - 2014 }, (_, i) => currentYear - i);
 
     // GitHub State
+    const [githubYear, setGithubYear] = useState(currentYear);
     const [githubData, setGithubData] = useState<any[]>([]);
     const [loadingGithub, setLoadingGithub] = useState(false);
 
     // LeetCode State
+    const [leetcodeYear, setLeetcodeYear] = useState(currentYear);
     const [leetcodeData, setLeetcodeData] = useState<any[]>([]);
     const [leetcodeStats, setLeetcodeStats] = useState<any>(null); // { totalSolved, easySolved, mediumSolved, hardSolved }
     const [leetcodeRating, setLeetcodeRating] = useState<any[]>([]);
     const [loadingLeetcode, setLoadingLeetcode] = useState(false);
 
     // Codeforces State
+    const [codeforcesYear, setCodeforcesYear] = useState(currentYear);
     const [codeforcesData, setCodeforcesData] = useState<any[]>([]);
     const [cfRating, setCfRating] = useState<any[]>([]);
     const [cfInfo, setCfInfo] = useState<any>(null);
@@ -50,9 +54,17 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
     // HackerRank State
     const [hackerrankData, setHackerrankData] = useState<any[]>([]);
 
-    // Generate years list (e.g., current year down to 2015)
-    const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: currentYear - 2014 }, (_, i) => currentYear - i);
+    const YearSelect = ({ year, setYear }: { year: number, setYear: (y: number) => void }) => (
+        <select
+            value={year}
+            onChange={(e) => setYear(parseInt(e.target.value))}
+            className="bg-black/80 border border-white/20 rounded-lg px-2 py-0.5 text-xs text-white focus:outline-none focus:border-blue-500 cursor-pointer ml-auto"
+        >
+            {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+            ))}
+        </select>
+    );
 
     // HackerRank Fetch
     useEffect(() => {
@@ -89,7 +101,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
         const fetchGithub = async () => {
             try {
                 // y=last fetches last 365 days. y=Y fetches specific year.
-                const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${profiles.github}?y=${selectedYear}`);
+                const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${profiles.github}?y=${githubYear}`);
                 const data = await res.json();
 
                 if (data.contributions) {
@@ -113,7 +125,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
             }
         };
         fetchGithub();
-    }, [profiles.github, selectedYear]);
+    }, [profiles.github, githubYear]);
 
     // LeetCode Fetch
     useEffect(() => {
@@ -229,7 +241,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                             }
                         }
                    `,
-                    variables: { username: profiles.leetcode, year: selectedYear }
+                    variables: { username: profiles.leetcode, year: leetcodeYear }
                 };
 
                 const calendarRes = await api.post('/leetcode', calendarQuery);
@@ -257,7 +269,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
             }
         };
         fetchLeetcode();
-    }, [profiles.leetcode, selectedYear]);
+    }, [profiles.leetcode, leetcodeYear]);
 
     // Codeforces Fetch
     useEffect(() => {
@@ -320,37 +332,25 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
 
     return (
         <div className="space-y-8 mt-12 mb-20">
-            <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                <h2 className="text-3xl font-bold">Coding Activity</h2>
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">Year:</span>
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        className="bg-black/80 border border-white/20 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
-                    >
-                        {years.map(year => (
-                            <option key={year} value={year}>{year}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
+            <h2 className="text-3xl font-bold border-b border-white/10 pb-4">Coding Activity</h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* GitHub */}
                 {profiles.github && (
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl lg:col-span-2">
-                        <SectionTitle
-                            title="GitHub"
-                            icon={<div className="w-3 h-3 bg-white rounded-full"></div>} // Simple icon
-                            username={profiles.github}
-                            link={`https://github.com/${profiles.github}`}
-                        />
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                            <h3 className="text-xl font-bold">GitHub</h3>
+                            <a href={`https://github.com/${profiles.github}`} target="_blank" rel="noreferrer" className="text-sm text-gray-400 hover:text-white flex items-center gap-1 ml-auto lg:ml-0 transition-colors">
+                                @{profiles.github} <ExternalLink size={12} />
+                            </a>
+                            <YearSelect year={githubYear} setYear={setGithubYear} />
+                        </div>
                         <div className="w-full overflow-x-auto">
                             <div className="min-w-[500px]">
                                 {loadingGithub ? (
-                                    <div className="py-8 text-center text-gray-500 text-sm animate-pulse">Loading GitHub activity for {selectedYear}...</div>
+                                    <div className="py-8 text-center text-gray-500 text-sm animate-pulse">Loading GitHub activity for {githubYear}...</div>
                                 ) : githubData.length > 0 ? (
                                     <>
                                         <ActivityCalendar
@@ -372,7 +372,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                     </>
                                 ) : (
                                     <div className="py-8 text-center text-gray-500 text-sm">
-                                        No activity found in {selectedYear}.
+                                        No activity found in {githubYear}.
                                     </div>
                                 )}
                             </div>
@@ -383,12 +383,14 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                 {/* LeetCode */}
                 {profiles.leetcode && (
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl lg:col-span-2">
-                        <SectionTitle
-                            title="LeetCode"
-                            icon={<div className="w-3 h-3 bg-yellow-500 rounded-full"></div>}
-                            username={profiles.leetcode}
-                            link={`https://leetcode.com/${profiles.leetcode}`}
-                        />
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <h3 className="text-xl font-bold">LeetCode</h3>
+                            <a href={`https://leetcode.com/${profiles.leetcode}`} target="_blank" rel="noreferrer" className="text-sm text-gray-400 hover:text-white flex items-center gap-1 ml-auto lg:ml-0 transition-colors">
+                                @{profiles.leetcode} <ExternalLink size={12} />
+                            </a>
+                            <YearSelect year={leetcodeYear} setYear={setLeetcodeYear} />
+                        </div>
                         <div className="flex flex-col gap-8">
                             {/* Top Section: Heatmap (Left) & Stats (Right) */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -397,7 +399,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                 <div className="lg:col-span-2 bg-black/30 p-6 rounded-xl border border-white/5 flex flex-col justify-center">
                                     <h4 className="text-sm text-gray-400 mb-4 font-medium flex items-center gap-2">
                                         <Activity size={16} />
-                                        Submission Activity ({selectedYear})
+                                        Submission Activity ({leetcodeYear})
                                     </h4>
                                     <div className="w-full overflow-x-auto">
                                         <div className="min-w-[500px]">
@@ -425,7 +427,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                                     <Tooltip id="leetcode-tooltip" />
                                                 </>
                                             ) : (
-                                                <div className="py-12 text-center text-gray-500 text-sm">No activity found in {selectedYear}.</div>
+                                                <div className="py-12 text-center text-gray-500 text-sm">No activity found in {leetcodeYear}.</div>
                                             )}
                                         </div>
                                     </div>
@@ -543,24 +545,26 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                 {/* Codeforces Heatmap & Stats */}
                 {profiles.codeforces && (
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl lg:col-span-2">
-                        <SectionTitle
-                            title="Codeforces"
-                            icon={<div className="w-3 h-3 bg-blue-500 rounded-full"></div>}
-                            username={profiles.codeforces}
-                            link={`https://codeforces.com/profile/${profiles.codeforces}`}
-                        />
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <h3 className="text-xl font-bold">Codeforces</h3>
+                            <a href={`https://codeforces.com/profile/${profiles.codeforces}`} target="_blank" rel="noreferrer" className="text-sm text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
+                                @{profiles.codeforces} <ExternalLink size={12} />
+                            </a>
+                            <YearSelect year={codeforcesYear} setYear={setCodeforcesYear} />
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Heatmap */}
                             <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                <h4 className="text-sm text-gray-400 mb-3">Submission Activity</h4>
+                                <h4 className="text-sm text-gray-400 mb-3">Submission Activity ({codeforcesYear})</h4>
                                 <div className="w-full overflow-x-auto">
                                     <div className="min-w-[300px]">
                                         {loadingCodeforces ? (
                                             <div className="py-8 text-center text-gray-500 text-sm animate-pulse">Loading...</div>
-                                        ) : getYearData(codeforcesData, selectedYear).length > 0 ? (
+                                        ) : getYearData(codeforcesData, codeforcesYear).length > 0 ? (
                                             <ActivityCalendar
-                                                data={getYearData(codeforcesData, selectedYear)}
+                                                data={getYearData(codeforcesData, codeforcesYear)}
                                                 theme={{
                                                     light: ['#ebedf0', '#1a3a5f', '#1d5a9e', '#3b8cea', '#80bfff'],
                                                     dark: ['#2d333b', '#1a3a5f', '#1d5a9e', '#3b8cea', '#80bfff']
@@ -570,7 +574,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                                 blockMargin={3}
                                             />
                                         ) : (
-                                            <div className="py-8 text-center text-gray-500 text-sm">No activity found in {selectedYear}.</div>
+                                            <div className="py-8 text-center text-gray-500 text-sm">No activity found in {codeforcesYear}.</div>
                                         )}
                                     </div>
                                 </div>
@@ -601,84 +605,90 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
             </div>
 
             {/* Badges Section - HackerRank */}
-            {(profiles.hackerrank && hackerrankData.length > 0) && (
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl mt-8">
-                    <SectionTitle
-                        title="HackerRank Badges"
-                        icon={<Trophy className="text-green-500" size={18} />}
-                        username={profiles.hackerrank}
-                        link={`https://www.hackerrank.com/${profiles.hackerrank}`}
-                    />
+            {
+                (profiles.hackerrank && hackerrankData.length > 0) && (
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl mt-8">
+                        <SectionTitle
+                            title="HackerRank Badges"
+                            icon={<Trophy className="text-green-500" size={18} />}
+                            username={profiles.hackerrank}
+                            link={`https://www.hackerrank.com/${profiles.hackerrank}`}
+                        />
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {hackerrankData
-                            .filter((badge: any) => badge.stars > 0)
-                            .map((badge: any, i: number) => (
-                                <div key={i} className="bg-black/40 border border-white/10 rounded-xl p-4 flex flex-col gap-3 hover:border-green-500/50 transition-colors group">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="font-bold text-lg text-white group-hover:text-green-400 transition-colors">{badge.badge_name || badge.badge_type}</h4>
-                                            <p className="text-xs text-gray-500">{badge.category_name || "Domain"}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {hackerrankData
+                                .filter((badge: any) => badge.stars > 0)
+                                .map((badge: any, i: number) => (
+                                    <div key={i} className="bg-black/40 border border-white/10 rounded-xl p-4 flex flex-col gap-3 hover:border-green-500/50 transition-colors group">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h4 className="font-bold text-lg text-white group-hover:text-green-400 transition-colors">{badge.badge_name || badge.badge_type}</h4>
+                                                <p className="text-xs text-gray-500">{badge.category_name || "Domain"}</p>
+                                            </div>
+                                            <div className="flex gap-1">
+                                                {[...Array(5)].map((_, starI) => (
+                                                    <Star
+                                                        key={starI}
+                                                        size={12}
+                                                        className={starI < badge.stars ? "text-yellow-500 fill-yellow-500" : "text-gray-700"}
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div className="flex gap-1">
-                                            {[...Array(5)].map((_, starI) => (
-                                                <Star
-                                                    key={starI}
-                                                    size={12}
-                                                    className={starI < badge.stars ? "text-yellow-500 fill-yellow-500" : "text-gray-700"}
-                                                />
-                                            ))}
+
+                                        <div className="mt-auto pt-2 border-t border-white/5 flex justify-between text-xs text-gray-400">
+                                            <span>{badge.solved} Solved</span>
+                                            <span>{badge.current_points} Points</span>
                                         </div>
                                     </div>
-
-                                    <div className="mt-auto pt-2 border-t border-white/5 flex justify-between text-xs text-gray-400">
-                                        <span>{badge.solved} Solved</span>
-                                        <span>{badge.current_points} Points</span>
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Badges Fallback / CodeChef */}
-            {(profiles.codechef && !profiles.hackerrank) && (
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl mt-8">
-                    <SectionTitle
-                        title="Achievements"
-                        icon={<Trophy className="text-yellow-500" size={18} />}
-                        username={profiles.codechef}
-                        link={`https://www.codechef.com/users/${profiles.codechef}`}
-                    />
-                    <div className="flex flex-wrap gap-8">
-                        {profiles.codechef && (
-                            <a href={`https://www.codechef.com/users/${profiles.codechef}`} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center w-32 h-32 bg-black/40 border border-white/20 rounded-xl hover:bg-white/10 transition-colors group">
-                                <Star size={32} className="text-amber-700 mb-2 group-hover:text-amber-500 transition-colors" />
-                                <span className="font-bold">CodeChef</span>
-                                <span className="text-xs text-gray-500 group-hover:text-gray-300">View Profile</span>
-                            </a>
-                        )}
+            {
+                (profiles.codechef && !profiles.hackerrank) && (
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl mt-8">
+                        <SectionTitle
+                            title="Achievements"
+                            icon={<Trophy className="text-yellow-500" size={18} />}
+                            username={profiles.codechef}
+                            link={`https://www.codechef.com/users/${profiles.codechef}`}
+                        />
+                        <div className="flex flex-wrap gap-8">
+                            {profiles.codechef && (
+                                <a href={`https://www.codechef.com/users/${profiles.codechef}`} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center w-32 h-32 bg-black/40 border border-white/20 rounded-xl hover:bg-white/10 transition-colors group">
+                                    <Star size={32} className="text-amber-700 mb-2 group-hover:text-amber-500 transition-colors" />
+                                    <span className="font-bold">CodeChef</span>
+                                    <span className="text-xs text-gray-500 group-hover:text-gray-300">View Profile</span>
+                                </a>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Empty State */}
-            {!profiles.github && !profiles.leetcode && !profiles.codeforces && !profiles.hackerrank && !profiles.codechef && (
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 shadow-xl text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mb-4 text-gray-400">
-                        <Code size={32} />
+            {
+                !profiles.github && !profiles.leetcode && !profiles.codeforces && !profiles.hackerrank && !profiles.codechef && (
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 shadow-xl text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mb-4 text-gray-400">
+                            <Code size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">No coding profiles added</h3>
+                        <p className="text-gray-400 max-w-md mx-auto mb-6">
+                            Connect your GitHub, LeetCode, Codeforces, and other coding profiles to showcase your activity heatmaps and stats here.
+                        </p>
+                        <div className="text-sm text-gray-500 bg-white/5 inline-block px-4 py-2 rounded-lg border border-white/10">
+                            Click <span className="text-white font-medium">Edit Profile</span> to add your usernames
+                        </div>
                     </div>
-                    <h3 className="text-xl font-bold mb-2">No coding profiles added</h3>
-                    <p className="text-gray-400 max-w-md mx-auto mb-6">
-                        Connect your GitHub, LeetCode, Codeforces, and other coding profiles to showcase your activity heatmaps and stats here.
-                    </p>
-                    <div className="text-sm text-gray-500 bg-white/5 inline-block px-4 py-2 rounded-lg border border-white/10">
-                        Click <span className="text-white font-medium">Edit Profile</span> to add your usernames
-                    </div>
-                </div>
-            )}
+                )
+            }
 
-        </div>
+        </div >
     );
 };
 
