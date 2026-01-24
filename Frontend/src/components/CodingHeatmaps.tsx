@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityCalendar } from 'react-activity-calendar';
 import { Tooltip } from 'react-tooltip';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { ExternalLink, Trophy, Star } from 'lucide-react';
+import { ExternalLink, Trophy, Star, Code } from 'lucide-react';
 import type { Profile } from '../types';
 
 interface TitleProps {
@@ -117,9 +117,20 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
 
                 // Fetch Contest Rating History
                 // Attempt to fetch from alfa-leetcode-api which often provides contest history
-                const ratingRes = await fetch(`https://alfa-leetcode-api.onrender.com/user/${profiles.leetcode}/contest`);
+                const ratingRes = await fetch(`https://alfa-leetcode-api.onrender.com/${profiles.leetcode}/contest`);
                 if (ratingRes.ok) {
                     const ratingData = await ratingRes.json();
+
+                    // Update stats with contest info if available
+                    if (ratingData.contestRating) {
+                        setLeetcodeStats((prev: any) => ({
+                            ...prev,
+                            contestRating: ratingData.contestRating,
+                            contestGlobalRanking: ratingData.contestGlobalRanking,
+                            contestBadge: ratingData.contestBadges?.name
+                        }));
+                    }
+
                     if (ratingData.contestParticipation) {
                         const history = ratingData.contestParticipation.map((contest: any) => ({
                             contest: contest.contest.title,
@@ -198,7 +209,7 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
         dark: ['#2d333b', '#1a7f37', '#2ea043', '#4ac26b', '#7ce38b'], // Brighter Green ramp for dark mode
     };
 
-    if (!Object.values(profiles).some(p => p)) return null;
+
 
     return (
         <div className="space-y-8 mt-12 mb-20">
@@ -274,6 +285,25 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                                             <div className="text-red-400 text-xs font-bold uppercase tracking-wider mb-1">Hard</div>
                                             <div className="text-xl font-bold">{leetcodeStats.hardSolved}</div>
                                         </div>
+                                    </div>
+                                )}
+
+                                {/* Contest Info Card */}
+                                {leetcodeStats?.contestRating && (
+                                    <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-xl p-4 flex items-center justify-between">
+                                        <div>
+                                            <div className="text-orange-400 text-xs font-bold uppercase tracking-wider mb-1">Contest Rating</div>
+                                            <div className="text-2xl font-bold text-white flex items-baseline gap-2">
+                                                {Math.round(leetcodeStats.contestRating)}
+                                                {leetcodeStats.contestBadge && (
+                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                                        {leetcodeStats.contestBadge}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="text-xs text-gray-500 mt-1">Global Rank: #{leetcodeStats.contestGlobalRanking?.toLocaleString()}</div>
+                                        </div>
+                                        <Trophy className="text-orange-500 opacity-80" size={32} />
                                     </div>
                                 )}
 
@@ -438,6 +468,23 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                     </div>
                 </div>
             )}
+
+            {/* Empty State */}
+            {!profiles.github && !profiles.leetcode && !profiles.codeforces && !profiles.hackerrank && !profiles.codechef && (
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 shadow-xl text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mb-4 text-gray-400">
+                        <Code size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">No coding profiles added</h3>
+                    <p className="text-gray-400 max-w-md mx-auto mb-6">
+                        Connect your GitHub, LeetCode, Codeforces, and other coding profiles to showcase your activity heatmaps and stats here.
+                    </p>
+                    <div className="text-sm text-gray-500 bg-white/5 inline-block px-4 py-2 rounded-lg border border-white/10">
+                        Click <span className="text-white font-medium">Edit Profile</span> to add your usernames
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
