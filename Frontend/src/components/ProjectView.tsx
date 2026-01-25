@@ -76,7 +76,12 @@ const ProjectView: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="min-h-screen pt-32 text-center text-white">Loading...</div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center text-white pt-32">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mr-3"></div>
+            Loading Project...
+        </div>
+    );
     if (error || !project) return <div className="min-h-screen pt-32 text-center text-red-500">{error || 'Project not found'}</div>;
 
 
@@ -215,7 +220,7 @@ const ProjectView: React.FC = () => {
                                     <span>{new Date(project.endDate).toLocaleDateString()}</span>
                                 </div>
                             )}
-                            {project.budget && (
+                            {project.budget !== undefined && project.budget > 0 && (
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-gray-400 flex items-center gap-2"><DollarSign size={14} /> Budget</span>
                                     <span className="text-green-400 font-bold">${project.budget.toLocaleString()}</span>
