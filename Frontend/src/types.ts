@@ -53,6 +53,9 @@ export interface Project {
     updatedAt?: string;
     likes?: number; // Add likes
     likedBy?: string[]; // Add likedBy
+    views?: number;
+    comments?: number;
+    shares?: number;
 }
 
 export interface Achievement {

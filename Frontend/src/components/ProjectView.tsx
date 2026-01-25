@@ -6,36 +6,7 @@ import { DEFAULT_AVATAR_URL } from '../constants';
 import { useAuth } from '../context/AuthContext';
 import ProjectModal from './ProjectModal';
 
-interface Project {
-    _id: string;
-    userId: {
-        _id: string;
-        name: string;
-        username: string;
-        avatar: string;
-    } | string;
-    title: string;
-    description: string;
-    tagline?: string;
-    skills?: string;
-    status: 'draft' | 'published';
-    category?: 'personal' | 'professional' | 'others';
-    links?: string[];
-    tags?: string[];
-    images?: string[];
-    avatar?: string;
-    startDate?: string;
-    endDate?: string;
-    budget?: number;
-    contributors?: string[];
-    views?: number;
-    likes?: number;
-    comments?: number;
-    shares?: number;
-    likedBy?: string[];
-    createdAt: string;
-    updatedAt: string;
-}
+import type { Project } from '../types';
 
 const ProjectView: React.FC = () => {
     const { projectId } = useParams();
@@ -109,8 +80,8 @@ const ProjectView: React.FC = () => {
     if (error || !project) return <div className="min-h-screen pt-32 text-center text-red-500">{error || 'Project not found'}</div>;
 
 
-    const ownerName = typeof project.userId !== 'string' ? project.userId.name : 'Unknown';
-    const ownerAvatar = typeof project.userId !== 'string' && project.userId.avatar ? project.userId.avatar : DEFAULT_AVATAR_URL;
+    const ownerName = project.userId && typeof project.userId !== 'string' ? project.userId.name : 'Unknown';
+    const ownerAvatar = project.userId && typeof project.userId !== 'string' && project.userId.avatar ? project.userId.avatar : DEFAULT_AVATAR_URL;
 
     const currentUserId = user?._id;
     const isLiked = currentUserId ? project.likedBy?.includes(currentUserId) : false;

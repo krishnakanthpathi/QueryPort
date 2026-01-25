@@ -6,35 +6,7 @@ import { Plus, Edit2, Trash2, Calendar, Folder, Eye, Heart } from 'lucide-react'
 import { DEFAULT_AVATAR_URL } from '../constants';
 import ProjectModal from './ProjectModal';
 
-interface Project {
-    _id: string;
-    userId: {
-        _id: string;
-        name: string;
-        username: string;
-        avatar: string;
-    } | string;
-    title: string;
-    description: string;
-    tagline?: string;
-    skills?: string;
-    status: 'draft' | 'published';
-    category?: 'personal' | 'professional' | 'others';
-    links?: string[];
-    tags?: string[];
-    images?: string[];
-    avatar?: string;
-    startDate?: string;
-    endDate?: string;
-    budget?: number;
-    contributors?: string[];
-    createdAt: string;
-    updatedAt: string;
-    likes?: number; // Add likes
-    likedBy?: string[]; // Add likedBy (array of user strings based on population?) 
-    // Actually backend returns populated or not based on query. 
-    // In projectsController, getAllProjects populates userId. likedBy is array of ObjectIds (strings in JSON).
-}
+import type { Project } from '../types';
 
 const Projects: React.FC = () => {
     const { user } = useAuth();
@@ -271,7 +243,7 @@ const Projects: React.FC = () => {
                                                     <Edit2 size={14} />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(project._id)}
+                                                    onClick={() => project._id && handleDelete(project._id)}
                                                     className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
                                                 >
                                                     <Trash2 size={14} />
@@ -298,7 +270,7 @@ const Projects: React.FC = () => {
                                             const isLiked = currentUserId ? project.likedBy?.includes(currentUserId) : false;
                                             return (
                                                 <button
-                                                    onClick={(e) => handleLike(e, project._id)}
+                                                    onClick={(e) => project._id && handleLike(e, project._id)}
                                                     className={`flex items-center gap-1 text-sm font-medium transition-colors ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'
                                                         }`}
                                                 >
@@ -323,7 +295,7 @@ const Projects: React.FC = () => {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Calendar size={12} />
-                                                <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                                                <span>{new Date(project.createdAt || Date.now()).toLocaleDateString()}</span>
                                             </div>
                                         </div>
                                     </div>
