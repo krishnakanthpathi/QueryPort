@@ -9,6 +9,7 @@ import hackerrankRoutes from './hackerrankRoutes.js';
 
 import leetcodeRoutes from './leetcodeRoutes.js';
 import leaderboardRoutes from './leaderboardRoutes.js';
+import educationRoutes from './educationRoutes.js';
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router.use("/skills", skillRoutes);
 router.use("/hackerrank", hackerrankRoutes);
 router.use("/leetcode", leetcodeRoutes);
 router.use("/leaderboard", leaderboardRoutes);
+router.use("/education", educationRoutes);
 
 
 

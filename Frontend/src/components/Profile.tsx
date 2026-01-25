@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import type { Profile as ProfileType, Project, Achievement, Certification } from '../types';
+import type { Profile as ProfileType, Project, Achievement, Certification, Education } from '../types';
 import { Edit2, MapPin, Save, X, Globe, FileText, Upload, Code, ExternalLink, Award, Heart } from 'lucide-react'; // Added icons
+import EducationList from './EducationList';
 import { DEFAULT_AVATAR_URL } from '../constants';
 import CodingHeatmaps from './CodingHeatmaps';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -21,6 +22,7 @@ const Profile: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [achievements, setAchievements] = useState<Achievement[]>([]);
     const [certifications, setCertifications] = useState<Certification[]>([]);
+    const [education, setEducation] = useState<Education[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -65,6 +67,7 @@ const Profile: React.FC = () => {
                     setProjects(data.data.projects || []);
                     setAchievements(data.data.achievements || []);
                     setCertifications(data.data.certifications || []);
+                    setEducation(data.data.education || []);
                 } else {
                     // My Profile Fetch (Private)
                     data = await api.get('/profile/me');
@@ -73,6 +76,15 @@ const Profile: React.FC = () => {
                     setProjects([]);
                     setAchievements([]);
                     setCertifications([]);
+                    setEducation([]);
+
+                    // Fetch my education separately or bundled? API design choice.
+                    // Let's assume /me returns profile only, and we need to fetch others?
+                    // Actually, for profile page we likely want aggregated.
+                    // But if /me only returns profile, let's fetch others in parallel or separate effects.
+                    // For now, let's fetch education separately for 'me' via new hook or API call
+                    const educationRes = await api.get('/education');
+                    setEducation(educationRes.data.education);
                 }
 
                 setProfile(data.data.profile);
@@ -503,6 +515,22 @@ const Profile: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Education Section */}
+                <div className="mb-8 mt-16 w-full max-w-4xl mx-auto">
+                    <EducationList
+                        education={education}
+                        isEditing={isEditing}
+                        onUpdate={() => {
+                            // Re-fetch education
+                            if (isPublicView) {
+                                api.get(`/education/u/${username}`).then((res) => setEducation(res.data.education));
+                            } else {
+                                api.get('/education').then((res) => setEducation(res.data.education));
+                            }
+                        }}
+                    />
+                </div>
+
                 {!isEditing && (
                     <div className="w-full mt-8 space-y-12">
                         {/* Coding Heatmaps */}
@@ -621,7 +649,7 @@ const Profile: React.FC = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -92,3 +92,25 @@ export interface Certification {
 }
 
 
+
+export interface Education {
+    _id?: string;
+    institution: string;
+    degree: string;
+    fieldOfStudy: string;
+    startDate: string;
+    endDate?: string;
+    current?: boolean;
+    score?: string;
+    semesters?: {
+        semester: number;
+        sgpa: string;
+        cgpa?: string;
+        gradeSheet?: string;
+    }[];
+    description?: string;
+    logo?: string;
+    userId?: User | string;
+    createdAt?: string;
+    updatedAt?: string;
+}
