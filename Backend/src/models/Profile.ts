@@ -41,6 +41,24 @@ const profileSchema = new mongoose.Schema(
                 ref: 'Skill',
             },
         ],
+        stats: {
+            totalLikes: { type: Number, default: 0 },
+            leetcode: {
+                solved: { type: Number, default: 0 },
+                ranking: { type: Number, default: 0 }
+            },
+            codeforces: {
+                rating: { type: Number, default: 0 },
+                maxRating: { type: Number, default: 0 }
+            },
+            hackerrank: {
+                badges: { type: Number, default: 0 },
+                points: { type: Number, default: 0 }
+            },
+            github: {
+                contributions: { type: Number, default: 0 }
+            }
+        },
     },
     {
         timestamps: true,

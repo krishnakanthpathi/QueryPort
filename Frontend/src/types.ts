@@ -30,6 +30,13 @@ export interface Profile {
         hackerrank?: string;
         codechef?: string;
     };
+    stats?: {
+        totalLikes: number;
+        leetcode?: { solved: number; ranking?: number };
+        codeforces?: { rating: number; maxRating?: number };
+        hackerrank?: { badges: number; points?: number };
+        github?: { contributions: number };
+    };
 }
 
 export interface Project {

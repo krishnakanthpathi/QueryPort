@@ -153,6 +153,13 @@ const Navbar: React.FC = () => {
                     >
                       Certifications
                     </Link>
+                    <Link
+                      to="/leaderboard"
+                      onClick={() => setIsExploreOpen(false)}
+                      className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                    >
+                      Leaderboard
+                    </Link>
                   </div>
                 )}
               </div>
@@ -210,6 +217,13 @@ const Navbar: React.FC = () => {
                         className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
                       >
                         Certifications
+                      </Link>
+                      <Link
+                        to="/leaderboard"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+                      >
+                        Leaderboard
                       </Link>
                       <Link
                         to="/skills"
@@ -278,6 +292,7 @@ const Navbar: React.FC = () => {
                 <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
                 <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
                 <Link to="/certifications" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Certifications</Link>
+                <Link to="/leaderboard" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Leaderboard</Link>
                 <Link to="/skills" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Skills</Link>
 
                 <button onClick={handleLogout} className="bg-white/10 text-white py-2 rounded-lg border border-white/20 hover:bg-white/20 mt-2">Logout</button>
@@ -288,6 +303,7 @@ const Navbar: React.FC = () => {
                 <Link to="/projects" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Projects</Link>
                 <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Achievements</Link>
                 <Link to="/certifications" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Certifications</Link>
+                <Link to="/leaderboard" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Leaderboard</Link>
                 {/* <Link to="/skills" onClick={() => setIsMenuOpen(false)} className="text-gray-300 text-center py-2 hover:text-white">Skills</Link> */}
 
                 <div className="border-t border-white/10 my-2"></div>

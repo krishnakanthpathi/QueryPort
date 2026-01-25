@@ -12,6 +12,7 @@ import AchievementView from "./components/AchievementView";
 import Skills from './components/Skills';
 import Certifications from "./components/Certifications";
 import CertificationView from "./components/CertificationView";
+import Leaderboard from "./components/Leaderboard";
 
 import { useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toast";
@@ -92,6 +93,7 @@ const App: React.FC = () => {
           <Route path="/skills" element={<Skills />} />
           <Route path="/certifications" element={<Certifications />} />
           <Route path="/certifications/:id" element={<CertificationView />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
 
           <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
           <Route path="/u/:username" element={<Profile />} />
