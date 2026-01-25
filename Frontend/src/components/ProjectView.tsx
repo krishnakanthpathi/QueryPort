@@ -97,7 +97,7 @@ const ProjectView: React.FC = () => {
         setProject(updatedProject);
 
         try {
-            await api.post(`/projects/id/${projectId}/like`);
+            await api.post(`/projects/id/${projectId}/like`, {});
         } catch (error) {
             console.error("Failed to like project", error);
             // Revert
@@ -108,8 +108,12 @@ const ProjectView: React.FC = () => {
     if (loading) return <div className="min-h-screen pt-32 text-center text-white">Loading...</div>;
     if (error || !project) return <div className="min-h-screen pt-32 text-center text-red-500">{error || 'Project not found'}</div>;
 
+
     const ownerName = typeof project.userId !== 'string' ? project.userId.name : 'Unknown';
     const ownerAvatar = typeof project.userId !== 'string' && project.userId.avatar ? project.userId.avatar : DEFAULT_AVATAR_URL;
+
+    const currentUserId = user?._id;
+    const isLiked = currentUserId ? project.likedBy?.includes(currentUserId) : false;
 
     return (
         <div className="min-h-screen pt-32 pb-12 bg-black text-white px-4 relative overflow-hidden overflow-y-auto w-full">
@@ -181,11 +185,11 @@ const ProjectView: React.FC = () => {
                                     <div className="flex items-center gap-1"><Eye size={16} /> {project.views || 0}</div>
                                     <button
                                         onClick={handleLike}
-                                        className={`flex items-center gap-1 transition-colors ${project.likedBy?.includes(user?._id) ? 'text-red-500 hover:text-red-400' : 'text-gray-400 hover:text-white'
+                                        className={`flex items-center gap-1 transition-colors ${isLiked ? 'text-red-500 hover:text-red-400' : 'text-gray-400 hover:text-white'
                                             }`}
                                     >
                                         <Heart size={16} fill={
-                                            project.likedBy?.includes(user?._id) ? "currentColor" : "none"
+                                            isLiked ? "currentColor" : "none"
                                         } />
                                         {project.likes || 0}
                                     </button>
