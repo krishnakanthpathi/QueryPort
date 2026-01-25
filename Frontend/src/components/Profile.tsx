@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import type { Profile as ProfileType, Project, Achievement, Certification } from '../types';
-import { Edit2, MapPin, Save, X, Globe, FileText, Upload, Code, ExternalLink, Award } from 'lucide-react'; // Added icons
+import { Edit2, MapPin, Save, X, Globe, FileText, Upload, Code, ExternalLink, Award, Heart } from 'lucide-react'; // Added icons
 import { DEFAULT_AVATAR_URL } from '../constants';
 import CodingHeatmaps from './CodingHeatmaps';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -158,6 +158,43 @@ const Profile: React.FC = () => {
             setError(err instanceof Error ? err.message : 'Failed to update profile');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleLike = async (e: React.MouseEvent, projectId: string) => {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent card navigation
+
+        if (!user) return; // Or trigger login
+
+        // Optimistic Update
+        const targetProjectIndex = projects.findIndex(p => p._id === projectId);
+        if (targetProjectIndex === -1) return;
+
+        const targetProject = projects[targetProjectIndex];
+        const isLiked = targetProject.likedBy?.includes(user._id);
+
+        const newLikedBy = isLiked
+            ? targetProject.likedBy?.filter(id => id !== user._id)
+            : [...(targetProject.likedBy || []), user._id];
+
+        const newLikes = isLiked
+            ? (targetProject.likes || 0) - 1
+            : (targetProject.likes || 0) + 1;
+
+        const updatedProject = { ...targetProject, likedBy: newLikedBy, likes: newLikes };
+        const newProjects = [...projects];
+        newProjects[targetProjectIndex] = updatedProject;
+
+        setProjects(newProjects);
+
+        try {
+            await api.post(`/projects/id/${projectId}/like`);
+            // Background sync is not strictly necessary if optimistic worked, but could re-fetch
+        } catch (error) {
+            console.error("Failed to like project", error);
+            // Revert on error
+            setProjects(projects);
         }
     };
 
@@ -484,10 +521,21 @@ const Profile: React.FC = () => {
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                 />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                                                <div className="absolute bottom-3 left-3">
+                                                <div className="absolute top-3 right-3 z-10">
+                                                    <button
+                                                        onClick={(e) => handleLike(e, project._id!)}
+                                                        className={`p-2 rounded-full backdrop-blur-md transition-all ${project.likedBy?.includes(user?._id || '') ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-black/30 text-white hover:bg-black/50 hover:text-red-400'}`}
+                                                    >
+                                                        <Heart size={18} fill={project.likedBy?.includes(user?._id || '') ? "currentColor" : "none"} />
+                                                    </button>
+                                                </div>
+                                                <div className="absolute bottom-3 left-3 flex justify-between items-end w-[calc(100%-1.5rem)]">
                                                     <span className="text-xs font-mono bg-blue-500/20 text-blue-300 px-2 py-1 rounded border border-blue-500/30">
                                                         {project.category}
                                                     </span>
+                                                    <div className="flex items-center gap-1 text-xs text-gray-300 font-medium bg-black/50 px-2 py-1 rounded-full backdrop-blur-sm">
+                                                        <Heart size={12} fill="currentColor" className="text-red-500" /> {project.likes || 0}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="p-5">

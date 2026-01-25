@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
-import { ArrowLeft, Calendar, Globe, User, DollarSign, Clock, Layers, FileText, Folder, ThumbsUp, Eye, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Globe, User, DollarSign, Clock, Layers, FileText, Folder, Eye, Edit2, Trash2, Heart } from 'lucide-react';
 import { DEFAULT_AVATAR_URL } from '../constants';
 import { useAuth } from '../context/AuthContext';
 import ProjectModal from './ProjectModal';
@@ -32,6 +32,7 @@ interface Project {
     likes?: number;
     comments?: number;
     shares?: number;
+    likedBy?: string[];
     createdAt: string;
     updatedAt: string;
 }
@@ -49,8 +50,8 @@ const ProjectView: React.FC = () => {
         try {
             const data = await api.get(`/projects/id/${projectId}`);
             setProject(data.data.project);
-        } catch (err: any) {
-            setError(err.message || 'Failed to fetch project');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to fetch project');
         } finally {
             setLoading(false);
         }
@@ -73,10 +74,36 @@ const ProjectView: React.FC = () => {
         try {
             await api.delete(`/projects/id/${projectId}`);
             navigate('/projects');
-        } catch (err: any) {
-            alert(err.message || 'Failed to delete project');
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : 'Failed to delete project');
         }
     }
+
+    const handleLike = async () => {
+        if (!user || !project) return;
+
+        // Optimistic Update
+        const isLiked = project.likedBy?.includes(user._id);
+
+        const newLikedBy = isLiked
+            ? project.likedBy?.filter(id => id !== user._id)
+            : [...(project.likedBy || []), user._id];
+
+        const newLikes = isLiked
+            ? (project.likes || 0) - 1
+            : (project.likes || 0) + 1;
+
+        const updatedProject = { ...project, likedBy: newLikedBy, likes: newLikes };
+        setProject(updatedProject);
+
+        try {
+            await api.post(`/projects/id/${projectId}/like`);
+        } catch (error) {
+            console.error("Failed to like project", error);
+            // Revert
+            setProject(project);
+        }
+    };
 
     if (loading) return <div className="min-h-screen pt-32 text-center text-white">Loading...</div>;
     if (error || !project) return <div className="min-h-screen pt-32 text-center text-red-500">{error || 'Project not found'}</div>;
@@ -152,7 +179,16 @@ const ProjectView: React.FC = () => {
 
                                 <div className="flex items-center gap-6 text-sm text-gray-400 hidden sm:flex">
                                     <div className="flex items-center gap-1"><Eye size={16} /> {project.views || 0}</div>
-                                    <div className="flex items-center gap-1"><ThumbsUp size={16} /> {project.likes || 0}</div>
+                                    <button
+                                        onClick={handleLike}
+                                        className={`flex items-center gap-1 transition-colors ${project.likedBy?.includes(user?._id) ? 'text-red-500 hover:text-red-400' : 'text-gray-400 hover:text-white'
+                                            }`}
+                                    >
+                                        <Heart size={16} fill={
+                                            project.likedBy?.includes(user?._id) ? "currentColor" : "none"
+                                        } />
+                                        {project.likes || 0}
+                                    </button>
                                     {/* <div className="flex items-center gap-1"><MessageSquare size={16}/> {project.comments || 0}</div> */}
                                 </div>
                             </div>

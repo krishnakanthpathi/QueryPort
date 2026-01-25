@@ -328,3 +328,39 @@ export const getMyProjects = catchAsync(async (req: Request, res: Response, next
         },
     });
 });
+
+// Protected: Toggle Like Project
+export const toggleLikeProject = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { projectId } = req.params;
+    // @ts-ignore
+    const userId = req.user.id;
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+        return next(new AppError('Project not found', 404));
+    }
+
+    // Check if user already liked
+    // @ts-ignore
+    const isLiked = project.likedBy.includes(userId);
+
+    if (isLiked) {
+        // Unlike
+        await Project.findByIdAndUpdate(projectId, {
+            $pull: { likedBy: userId },
+            $inc: { likes: -1 }
+        });
+    } else {
+        // Like
+        await Project.findByIdAndUpdate(projectId, {
+            $addToSet: { likedBy: userId },
+            $inc: { likes: 1 }
+        });
+    }
+
+    res.status(200).json({
+        status: 'success',
+        data: null
+    });
+});

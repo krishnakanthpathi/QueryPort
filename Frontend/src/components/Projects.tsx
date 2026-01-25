@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Calendar, Folder, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Folder, Eye, Heart } from 'lucide-react';
 import { DEFAULT_AVATAR_URL } from '../constants';
 import ProjectModal from './ProjectModal';
 
@@ -30,6 +30,10 @@ interface Project {
     contributors?: string[];
     createdAt: string;
     updatedAt: string;
+    likes?: number; // Add likes
+    likedBy?: string[]; // Add likedBy (array of user strings based on population?) 
+    // Actually backend returns populated or not based on query. 
+    // In projectsController, getAllProjects populates userId. likedBy is array of ObjectIds (strings in JSON).
 }
 
 const Projects: React.FC = () => {
@@ -69,9 +73,9 @@ const Projects: React.FC = () => {
             const data = await api.get(`${endpoint}?page=${page}&limit=9`);
             setProjects(data.data.projects);
             setTotalPages(data.totalPages || 1);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            setError(err.message || 'Failed to fetch projects');
+            setError(err instanceof Error ? err.message : 'Failed to fetch projects');
         } finally {
             setLoading(false);
         }
@@ -106,8 +110,43 @@ const Projects: React.FC = () => {
         try {
             await api.delete(`/projects/id/${projectId}`);
             setProjects(prev => prev.filter(p => p._id !== projectId));
-        } catch (err: any) {
-            alert(err.message || 'Failed to delete project');
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : 'Failed to delete project');
+        }
+    };
+
+    const handleLike = async (e: React.MouseEvent, projectId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!user) return; // Or trigger login
+
+        // Optimistic Update
+        const targetProjectIndex = projects.findIndex(p => p._id === projectId);
+        if (targetProjectIndex === -1) return;
+
+        const targetProject = projects[targetProjectIndex];
+        const isLiked = targetProject.likedBy?.includes(user._id);
+
+        const newLikedBy = isLiked
+            ? targetProject.likedBy?.filter(id => id !== user._id)
+            : [...(targetProject.likedBy || []), user._id];
+
+        const newLikes = isLiked
+            ? (targetProject.likes || 0) - 1
+            : (targetProject.likes || 0) + 1;
+
+        const updatedProject = { ...targetProject, likedBy: newLikedBy, likes: newLikes };
+        const newProjects = [...projects];
+        newProjects[targetProjectIndex] = updatedProject;
+
+        setProjects(newProjects);
+
+        try {
+            await api.post(`/projects/id/${projectId}/like`);
+        } catch (error) {
+            console.error("Failed to like project", error);
+            setProjects(projects);
         }
     };
 
@@ -248,6 +287,19 @@ const Projects: React.FC = () => {
                                                 #{tag}
                                             </span>
                                         ))}
+                                    </div>
+
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <button
+                                            onClick={(e) => handleLike(e, project._id)}
+                                            className={`flex items-center gap-1 text-sm font-medium transition-colors ${project.likedBy?.includes(user?._id) ? 'text-red-500' : 'text-gray-400 hover:text-red-400'
+                                                }`}
+                                        >
+                                            <Heart size={16} fill={
+                                                project.likedBy?.includes(user?._id) ? "currentColor" : "none"
+                                            } />
+                                            <span>{project.likes || 0}</span>
+                                        </button>
                                     </div>
 
                                     <div className="border-t border-white/5 pt-4 flex justify-between items-center text-xs text-gray-500">

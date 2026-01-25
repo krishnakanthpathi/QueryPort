@@ -75,6 +75,11 @@ const projectSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    // liked by users
+    likedBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }],
     // project comments
     comments: {
         type: Number,
