@@ -94,6 +94,7 @@ const App: React.FC = () => {
           <Route path="/certifications/:id" element={<CertificationView />} />
 
           <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
+          <Route path="/u/:username" element={<Profile />} />
         </Routes>
       </ToastProvider>
     </GoogleOAuthProvider>

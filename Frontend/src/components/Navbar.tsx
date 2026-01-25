@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Logo from './Logo';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, Search } from 'lucide-react';
 import { DEFAULT_AVATAR_URL } from '../constants';
+import { api } from '../lib/api';
 
 const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -11,6 +12,49 @@ const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isExploreOpen, setIsExploreOpen] = useState(false);
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setSearchResults([]);
+        setSearchQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const res = await api.get(`/profile/search?q=${query}&limit=5`);
+        setSearchResults(res.data.users);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+  };
 
   const handleLogout = () => {
     logout();
@@ -25,6 +69,54 @@ const Navbar: React.FC = () => {
             <Logo className="h-8 w-8 text-white" />
             <span className="text-xl font-bold tracking-tight text-white">QueryPort</span>
           </Link>
+
+          {/* Search Bar (Desktop) */}
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-8 relative" ref={searchRef}>
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={16} className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-10 pr-3 py-2 bg-white/10 border border-white/10 rounded-full leading-5 text-gray-300 placeholder-gray-400 focus:outline-none focus:bg-white/20 focus:text-white sm:text-sm transition-colors"
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={handleSearch}
+              />
+              {/* Search Results Dropdown */}
+              {(searchResults.length > 0 || isSearching) && (searchQuery.trim().length > 0) && (
+                <div className="absolute mt-2 w-full bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                  {isSearching ? (
+                    <div className="p-4 text-center text-gray-400 text-sm">Searching...</div>
+                  ) : (
+                    searchResults.length > 0 ? (
+                      searchResults.map(user => (
+                        <div
+                          key={user._id}
+                          onClick={() => {
+                            navigate(`/u/${user.username}`);
+                            setSearchQuery('');
+                            setSearchResults([]);
+                          }}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 cursor-pointer transition-colors border-b border-white/5 last:border-0"
+                        >
+                          <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 flex-shrink-0">
+                            <img src={user.avatar || DEFAULT_AVATAR_URL} alt={user.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-white">{user.name}</p>
+                            <p className="text-xs text-gray-400">@{user.username}</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500 text-sm">No users found.</div>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8 ml-8">

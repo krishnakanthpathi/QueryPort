@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import type { Profile as ProfileType } from '../types';
-import { Edit2, MapPin, Save, X, Globe, FileText, Upload, Code } from 'lucide-react'; // Added Code icon
+import type { Profile as ProfileType, Project, Achievement, Certification } from '../types';
+import { Edit2, MapPin, Save, X, Globe, FileText, Upload, Code, ExternalLink, Award } from 'lucide-react'; // Added icons
 import { DEFAULT_AVATAR_URL } from '../constants';
-import CodingHeatmaps from './CodingHeatmaps'; // Import
+import CodingHeatmaps from './CodingHeatmaps';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const Profile: React.FC = () => {
     const { user } = useAuth();
+    const { username } = useParams<{ username: string }>(); // Get username from URL
+    const navigate = useNavigate();
+
+    // Derived state for mode
+    const isPublicView = !!username;
+    // If viewing own public profile, we define it as "Public View" but maybe we want to allow edit?
+    // For now, strict separation: /u/:username is READ ONLY. /profile is EDIT.
+
     const [profile, setProfile] = useState<ProfileType | null>(null);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [achievements, setAchievements] = useState<Achievement[]>([]);
+    const [certifications, setCertifications] = useState<Certification[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState('');
@@ -36,11 +49,29 @@ const Profile: React.FC = () => {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
-                const data = await api.get('/profile/me');
+                let data;
+
+                if (isPublicView) {
+                    // Public Profile Fetch
+                    data = await api.get(`/profile/u/${username}`);
+                    // The public endpoint returns { profile, projects, achievements, certifications}
+                    setProjects(data.data.projects || []);
+                    setAchievements(data.data.achievements || []);
+                    setCertifications(data.data.certifications || []);
+                } else {
+                    // My Profile Fetch (Private)
+                    data = await api.get('/profile/me');
+                    // /me currently matches only profile (unless we update it too, but we kept it simple)
+                    // We clear others to avoid stale state if switching users theoretically
+                    setProjects([]);
+                    setAchievements([]);
+                    setCertifications([]);
+                }
+
                 setProfile(data.data.profile);
 
-                // Initialize form data
-                if (data.data.profile) {
+                // Initialize form data (Only needed if NOT public view or if we allow editing own public profile)
+                if (!isPublicView && data.data.profile) {
                     const profileData = data.data.profile;
                     setFormData({
                         bio: profileData.bio || '',
@@ -59,21 +90,25 @@ const Profile: React.FC = () => {
                     });
                 }
             } catch (err: unknown) {
-                // If 404, it just means no profile created yet, but we should still enable editing for user fields if we want?
-                // Actually, if 404, we might not have a profile doc, but we have a user doc.
-                // For now, if 404, we leave defaults.
-                if (err instanceof Error && !err.message?.includes('404')) {
-                    console.error('Error fetching profile:', err);
+                if (err instanceof Error) {
+                    // If 404 in public view, it's a real error
+                    if (isPublicView) {
+                        setError('User not found');
+                    }
+                    // If 404 in private view, it just means profile not created yet
+                    else if (!err.message?.includes('404')) {
+                        console.error('Error fetching profile:', err);
+                    }
                 }
-                // Ensure avatar defaults to current user avatar if profile fetch fails or is 404
-                setFormData(prev => ({ ...prev, avatar: user?.avatar || '' }));
+                // Ensure avatar defaults to current user avatar if profile fetch fails or is 404 (only for private)
+                if (!isPublicView) setFormData(prev => ({ ...prev, avatar: user?.avatar || '' }));
             } finally {
                 setLoading(false);
             }
         };
 
         fetchProfile();
-    }, [user]);
+    }, [user, username, isPublicView]);
 
     const handleSave = async () => {
         try {
@@ -143,6 +178,24 @@ const Profile: React.FC = () => {
         );
     }
 
+    if (error && isPublicView) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-red-400">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold mb-2">Error</h2>
+                    <p>{error}</p>
+                    <button onClick={() => navigate('/')} className="mt-4 px-4 py-2 bg-white/10 rounded hover:bg-white/20 text-white">Go Home</button>
+                </div>
+            </div>
+        )
+    }
+
+    // Determine what to show: parsed profile from DB (public) or form data (private/editing)
+    const displayAvatar = isPublicView ? (profile?.user?.avatar || DEFAULT_AVATAR_URL) : (formData.avatar || user?.avatar || DEFAULT_AVATAR_URL);
+    const displayName = isPublicView ? profile?.user?.name : user?.name;
+    const displayUsername = isPublicView ? profile?.user?.username : (user ? user.username : 'username');
+    const displayEmail = isPublicView ? profile?.user?.email : user?.email;
+
     return (
         <div className="min-h-screen flex justify-center pt-32 pb-12 bg-black text-white relative overflow-hidden overflow-y-auto w-full">
             {/* Background - Pure Black (Removed Blobs) */}
@@ -153,7 +206,7 @@ const Profile: React.FC = () => {
                     <div className="relative group">
                         <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 shadow-lg">
                             <img
-                                src={formData.avatar || user?.avatar || DEFAULT_AVATAR_URL}
+                                src={displayAvatar}
                                 alt="Avatar"
                                 className="w-full h-full object-cover transition-all duration-300"
                                 referrerPolicy="no-referrer"
@@ -168,11 +221,11 @@ const Profile: React.FC = () => {
                     <div className="flex-1 text-center md:text-left w-full">
                         <div className="flex flex-col md:flex-row justify-between items-center mb-4">
                             <div>
-                                <h1 className="text-3xl font-bold">{user?.name}</h1>
-                                <p className="text-gray-400">@{user ? user.username : 'username'}</p>
-                                <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
+                                <h1 className="text-3xl font-bold">{displayName}</h1>
+                                <p className="text-gray-400">@{displayUsername}</p>
+                                <p className="text-gray-500 text-sm mt-1">{displayEmail}</p>
                             </div>
-                            {!isEditing && (
+                            {!isEditing && !isPublicView && (
                                 <button
                                     onClick={() => setIsEditing(true)}
                                     className="mt-4 md:mt-0 flex items-center gap-2 bg-white text-black hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors font-medium"
@@ -402,8 +455,103 @@ const Profile: React.FC = () => {
                 </div>
 
                 {!isEditing && (
-                    <div className="w-full mt-8">
+                    <div className="w-full mt-8 space-y-12">
+                        {/* Coding Heatmaps */}
                         <CodingHeatmaps profiles={profile?.codingProfiles || formData.codingProfiles} />
+
+                        {/* Projects Section - Only Show in Public View or if we want it in private too (Plan said public) */}
+                        {isPublicView && projects.length > 0 && (
+                            <section>
+                                <h3 className="text-2xl font-bold mb-6 border-b border-white/10 pb-2 flex items-center gap-2">
+                                    <ExternalLink className="text-blue-400" /> Projects
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {projects.map((project) => (
+                                        <div key={project._id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-white/30 transition-all group">
+                                            <div className="h-40 overflow-hidden relative">
+                                                <img
+                                                    src={project.avatar || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1000&auto=format&fit=crop"}
+                                                    alt={project.title}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                                                <div className="absolute bottom-3 left-3">
+                                                    <span className="text-xs font-mono bg-blue-500/20 text-blue-300 px-2 py-1 rounded border border-blue-500/30">
+                                                        {project.category}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="p-5">
+                                                <h4 className="text-xl font-bold mb-2 group-hover:text-blue-400 transition-colors">{project.title}</h4>
+                                                <p className="text-gray-400 text-sm line-clamp-2 mb-4">{project.description}</p>
+                                                {project.skills && (
+                                                    <div className="flex flex-wrap gap-2 mb-4">
+                                                        {project.skills.split(',').slice(0, 3).map((skill, i) => (
+                                                            <span key={i} className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded">{skill.trim()}</span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <a href={`/projects/${project._id}`} className="block w-full text-center py-2 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors">
+                                                    View Details
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Achievements Section */}
+                        {isPublicView && achievements.length > 0 && (
+                            <section>
+                                <h3 className="text-2xl font-bold mb-6 border-b border-white/10 pb-2 flex items-center gap-2">
+                                    <Award className="text-yellow-400" /> Achievements
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {achievements.map((ach) => (
+                                        <div key={ach._id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-start gap-4">
+                                            <div className="w-16 h-16 rounded-lg bg-black/50 p-2 border border-white/10 flex-shrink-0">
+                                                <img src={ach.image} alt={ach.title} className="w-full h-full object-contain" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-lg">{ach.title}</h4>
+                                                <p className="text-blue-300 text-sm mb-1">{ach.organization}</p>
+                                                <p className="text-gray-400 text-sm line-clamp-2">{ach.description}</p>
+                                                <p className="text-gray-500 text-xs mt-2">{new Date(ach.date).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Certifications Section */}
+                        {isPublicView && certifications.length > 0 && (
+                            <section>
+                                <h3 className="text-2xl font-bold mb-6 border-b border-white/10 pb-2 flex items-center gap-2">
+                                    <FileText className="text-green-400" /> Certifications
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {certifications.map((cert) => (
+                                        <div key={cert._id} className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="w-12 h-12 rounded bg-white p-1">
+                                                    <img src={cert.image} alt={cert.issuingOrganization} className="w-full h-full object-contain" />
+                                                </div>
+                                                {cert.credentialUrl && (
+                                                    <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white">
+                                                        <ExternalLink size={16} />
+                                                    </a>
+                                                )}
+                                            </div>
+                                            <h4 className="font-bold">{cert.name}</h4>
+                                            <p className="text-sm text-gray-400">{cert.issuingOrganization}</p>
+                                            <p className="text-xs text-gray-500 mt-2">Issued: {new Date(cert.issueDate).toLocaleDateString()}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
                     </div>
                 )}
             </div>

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserProfile, updateProfile, getProfileByUsername, getMyProfile } from '../controllers/profileController.js';
+import { getUserProfile, updateProfile, getProfileByUsername, getMyProfile, searchUsers } from '../controllers/profileController.js';
 import { protect } from '../controllers/authController.js';
 import { upload } from '../utils/cloudinary.js';
 
@@ -10,6 +10,7 @@ router.get('/me', protect, getMyProfile);
 router.patch('/me', protect, upload.single('avatar'), updateProfile);
 
 // Public Routes
+router.get('/search', searchUsers); // Check this before /u/:username if generic, but usually fine
 router.get('/u/:username', getProfileByUsername);
 
 // only for developer use
