@@ -48,7 +48,14 @@ const Profile: React.FC = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
+                // Reset state on new fetch to avoid stale data during navigation
                 setLoading(true);
+                setError('');
+                setProfile(null);
+                setProjects([]);
+                setAchievements([]);
+                setCertifications([]);
+
                 let data;
 
                 if (isPublicView) {
@@ -91,8 +98,10 @@ const Profile: React.FC = () => {
                 }
             } catch (err: unknown) {
                 if (err instanceof Error) {
-                    // If 404 in public view, it's a real error
+                    // If 404 in public view, it's a real error (User not found)
                     if (isPublicView) {
+                        // Backend now returns 200 with fallback profile if User exists but Profile doc missing.
+                        // So 404 really means User Not Found now.
                         setError('User not found');
                     }
                     // If 404 in private view, it just means profile not created yet
@@ -238,7 +247,7 @@ const Profile: React.FC = () => {
 
                         {!isEditing ? (
                             <>
-                                <h2 className="text-xl font-medium text-gray-200 mb-2">{profile?.title || "No title set"}</h2>
+                                <h2 className="text-xl font-medium text-gray-200 mb-2">{profile?.title || (isPublicView ? "" : "No title set")}</h2>
                                 <div className="flex items-center justify-center md:justify-start gap-2 text-gray-400 mb-6">
                                     <MapPin size={16} />
                                     <span>{profile?.locations || "No location set"}</span>
@@ -310,7 +319,7 @@ const Profile: React.FC = () => {
                             <h3 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">About Me</h3>
                             {!isEditing ? (
                                 <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                    {profile?.bio || "Tell us about yourself..."}
+                                    {profile?.bio || (isPublicView ? "No bio added yet." : "Tell us about yourself...")}
                                 </p>
                             ) : (
                                 <textarea

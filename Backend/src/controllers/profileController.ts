@@ -32,7 +32,23 @@ export const getProfileByUsername = catchAsync(async (req: Request, res: Respons
     ]);
 
     if (!profile) {
-        return next(new AppError('Profile not found', 404));
+        // Instead of 404, return minimal structure with user info
+        return res.status(200).json({
+            status: 'success',
+            data: {
+                profile: {
+                    user: user, // user is already found above
+                    bio: '',
+                    title: '',
+                    locations: '',
+                    socialLinks: [],
+                    codingProfiles: {}
+                },
+                projects,
+                achievements,
+                certifications
+            },
+        });
     }
 
     res.status(200).json({
