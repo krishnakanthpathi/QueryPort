@@ -172,11 +172,14 @@ const Profile: React.FC = () => {
         if (targetProjectIndex === -1) return;
 
         const targetProject = projects[targetProjectIndex];
-        const isLiked = targetProject.likedBy?.includes(user._id);
+        const currentUserId = user?._id;
+        if (!currentUserId) return;
+
+        const isLiked = targetProject.likedBy?.includes(currentUserId);
 
         const newLikedBy = isLiked
-            ? targetProject.likedBy?.filter(id => id !== user._id)
-            : [...(targetProject.likedBy || []), user._id];
+            ? targetProject.likedBy?.filter(id => id !== currentUserId)
+            : [...(targetProject.likedBy || []), currentUserId];
 
         const newLikes = isLiked
             ? (targetProject.likes || 0) - 1
@@ -189,7 +192,7 @@ const Profile: React.FC = () => {
         setProjects(newProjects);
 
         try {
-            await api.post(`/projects/id/${projectId}/like`);
+            await api.post(`/projects/id/${projectId}/like`, {});
             // Background sync is not strictly necessary if optimistic worked, but could re-fetch
         } catch (error) {
             console.error("Failed to like project", error);
@@ -522,12 +525,18 @@ const Profile: React.FC = () => {
                                                 />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                                                 <div className="absolute top-3 right-3 z-10">
-                                                    <button
-                                                        onClick={(e) => handleLike(e, project._id!)}
-                                                        className={`p-2 rounded-full backdrop-blur-md transition-all ${project.likedBy?.includes(user?._id || '') ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-black/30 text-white hover:bg-black/50 hover:text-red-400'}`}
-                                                    >
-                                                        <Heart size={18} fill={project.likedBy?.includes(user?._id || '') ? "currentColor" : "none"} />
-                                                    </button>
+                                                    {(() => {
+                                                        const currentUserId = user?._id;
+                                                        const isLiked = currentUserId ? project.likedBy?.includes(currentUserId) : false;
+                                                        return (
+                                                            <button
+                                                                onClick={(e) => handleLike(e, project._id!)}
+                                                                className={`p-2 rounded-full backdrop-blur-md transition-all ${isLiked ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-black/30 text-white hover:bg-black/50 hover:text-red-400'}`}
+                                                            >
+                                                                <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
+                                                            </button>
+                                                        );
+                                                    })()}
                                                 </div>
                                                 <div className="absolute bottom-3 left-3 flex justify-between items-end w-[calc(100%-1.5rem)]">
                                                     <span className="text-xs font-mono bg-blue-500/20 text-blue-300 px-2 py-1 rounded border border-blue-500/30">

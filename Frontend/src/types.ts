@@ -51,6 +51,8 @@ export interface Project {
     userId?: User | string;
     createdAt?: string;
     updatedAt?: string;
+    likes?: number; // Add likes
+    likedBy?: string[]; // Add likedBy
 }
 
 export interface Achievement {

@@ -126,11 +126,14 @@ const Projects: React.FC = () => {
         if (targetProjectIndex === -1) return;
 
         const targetProject = projects[targetProjectIndex];
-        const isLiked = targetProject.likedBy?.includes(user._id);
+        const currentUserId = user?._id;
+        if (!currentUserId) return;
+
+        const isLiked = targetProject.likedBy?.includes(currentUserId);
 
         const newLikedBy = isLiked
-            ? targetProject.likedBy?.filter(id => id !== user._id)
-            : [...(targetProject.likedBy || []), user._id];
+            ? targetProject.likedBy?.filter(id => id !== currentUserId)
+            : [...(targetProject.likedBy || []), currentUserId];
 
         const newLikes = isLiked
             ? (targetProject.likes || 0) - 1
@@ -143,7 +146,7 @@ const Projects: React.FC = () => {
         setProjects(newProjects);
 
         try {
-            await api.post(`/projects/id/${projectId}/like`);
+            await api.post(`/projects/id/${projectId}/like`, {});
         } catch (error) {
             console.error("Failed to like project", error);
             setProjects(projects);
@@ -290,16 +293,22 @@ const Projects: React.FC = () => {
                                     </div>
 
                                     <div className="flex items-center gap-4 mb-4">
-                                        <button
-                                            onClick={(e) => handleLike(e, project._id)}
-                                            className={`flex items-center gap-1 text-sm font-medium transition-colors ${project.likedBy?.includes(user?._id) ? 'text-red-500' : 'text-gray-400 hover:text-red-400'
-                                                }`}
-                                        >
-                                            <Heart size={16} fill={
-                                                project.likedBy?.includes(user?._id) ? "currentColor" : "none"
-                                            } />
-                                            <span>{project.likes || 0}</span>
-                                        </button>
+                                        {(() => {
+                                            const currentUserId = user?._id;
+                                            const isLiked = currentUserId ? project.likedBy?.includes(currentUserId) : false;
+                                            return (
+                                                <button
+                                                    onClick={(e) => handleLike(e, project._id)}
+                                                    className={`flex items-center gap-1 text-sm font-medium transition-colors ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'
+                                                        }`}
+                                                >
+                                                    <Heart size={16} fill={
+                                                        isLiked ? "currentColor" : "none"
+                                                    } />
+                                                    <span>{project.likes || 0}</span>
+                                                </button>
+                                            )
+                                        })()}
                                     </div>
 
                                     <div className="border-t border-white/5 pt-4 flex justify-between items-center text-xs text-gray-500">
