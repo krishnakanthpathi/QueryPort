@@ -38,7 +38,7 @@ export interface Profile {
         github?: { contributions: number };
         cgpa?: number;
     };
-    type?: 'Student' | 'Professional' | 'Alumni' | 'Other';
+    type?: 'Student' | 'Professional' | 'Other';
 }
 
 export interface Project {

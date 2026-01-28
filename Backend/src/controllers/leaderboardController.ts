@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import axios from 'axios';
 import Profile from '../models/Profile.js';
 import Project from '../models/Project.js';
+import User from '../models/User.js';
 
 import Education from '../models/Education.js';
 
@@ -190,7 +191,9 @@ export const getLeaderboard = async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const sortBy = (req.query.sortBy as string) || 'likes';
+        const sortOrder = (req.query.order as string) === 'asc' ? 1 : -1;
         const typeFilter = (req.query.type as string);
+        const searchQuery = (req.query.search as string);
         const skip = (page - 1) * limit;
 
         let sortQuery: any = {};
@@ -200,23 +203,70 @@ export const getLeaderboard = async (req: Request, res: Response) => {
             filterQuery.type = typeFilter;
         }
 
-        switch (sortBy) {
-            case 'leetcode':
-                sortQuery = { 'stats.leetcode.solved': -1 };
-                break;
-            case 'codeforces':
-                sortQuery = { 'stats.codeforces.rating': -1 };
-                break;
-            case 'hackerrank':
-                sortQuery = { 'stats.hackerrank.badges': -1 };
-                break;
-            case 'cgpa':
-                sortQuery = { 'stats.cgpa': -1 };
-                break;
-            case 'likes':
-            default:
-                sortQuery = { 'stats.totalLikes': -1 };
-                break;
+        if (searchQuery) {
+            const users = await User.find({
+                $or: [
+                    { name: { $regex: searchQuery, $options: 'i' } },
+                    { username: { $regex: searchQuery, $options: 'i' } }
+                ]
+            }).select('_id');
+            const userIds = users.map(u => u._id);
+            filterQuery.user = { $in: userIds };
+        }
+
+        // Parse dynamic sort
+        // Format: key:order,key:order (e.g. leetcode:desc,cgpa:asc)
+        // If simple format (leetcode), use default order logic
+
+        const sortMap: Record<string, string> = {
+            'leetcode': 'stats.leetcode.solved',
+            'codeforces': 'stats.codeforces.rating',
+            'hackerrank': 'stats.hackerrank.badges',
+            'cgpa': 'stats.cgpa',
+            'likes': 'stats.totalLikes'
+        };
+
+        if (sortBy.includes(':') || sortBy.includes(',')) {
+            const sorts = sortBy.split(',');
+            sorts.forEach(s => {
+                const parts = s.split(':');
+                const key = parts[0];
+                const order = parts[1];
+
+                // Ensure key is valid string
+                const dbField = (key && sortMap[key]) ? sortMap[key] : sortMap['likes'];
+                const direction = order === 'asc' ? 1 : -1;
+
+                // @ts-ignore
+                if (dbField) sortQuery[dbField] = direction;
+            });
+        } else {
+            // Fallback to old single-sort logic or specifically requested single sort
+            switch (sortBy) {
+                case 'overall':
+                    sortQuery = {
+                        'stats.leetcode.solved': -1,
+                        'stats.hackerrank.badges': -1,
+                        'stats.cgpa': -1
+                    };
+                    break;
+                case 'leetcode':
+                    sortQuery = { 'stats.leetcode.solved': sortOrder };
+                    break;
+                case 'codeforces':
+                    sortQuery = { 'stats.codeforces.rating': sortOrder };
+                    break;
+                case 'hackerrank':
+                    sortQuery = { 'stats.hackerrank.badges': sortOrder };
+                    break;
+                case 'cgpa':
+                    sortQuery = { 'stats.cgpa': sortOrder };
+                    break;
+                case 'likes':
+                default:
+                    sortQuery = { 'stats.totalLikes': sortOrder };
+                    break;
+            }
         }
 
         const leaderboard = await Profile.find(filterQuery)

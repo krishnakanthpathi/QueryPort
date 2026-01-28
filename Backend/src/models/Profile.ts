@@ -62,7 +62,7 @@ const profileSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ['Student', 'Professional', 'Alumni', 'Other'],
+            enum: ['Student', 'Professional', 'Other'],
             default: 'Student'
         },
     },

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
-import { Trophy, RefreshCw, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { Trophy, RefreshCw, ChevronLeft, ChevronRight, Download, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from './Toast';
 
@@ -31,15 +31,30 @@ const Leaderboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
     const [downloading, setDownloading] = useState(false);
-    const [filter, setFilter] = useState<'likes' | 'leetcode' | 'codeforces' | 'hackerrank' | 'cgpa'>('likes');
+
+    // Active sorts array for dynamic multi-column sorting
+    const [activeSorts, setActiveSorts] = useState<{ key: string; order: 'asc' | 'desc' }[]>([{ key: 'likes', order: 'desc' }]);
     const [userTypeFilter, setUserTypeFilter] = useState<string>('All');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setPage(1); // Reset to page 1 on search
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     const fetchLeaderboard = async () => {
         setLoading(true);
         try {
-            const data = await api.get(`/leaderboard?page=${page}&limit=10&sortBy=${filter}&type=${userTypeFilter}`);
+            // Construct sortBy string
+            const sortParam = activeSorts.map(s => `${s.key}:${s.order}`).join(',');
+            const data = await api.get(`/leaderboard?page=${page}&limit=10&sortBy=${sortParam}&type=${userTypeFilter}&search=${debouncedSearch}`);
             setUsers(data.data);
             setTotalPages(data.totalPages);
         } catch (error: any) {
@@ -51,17 +66,13 @@ const Leaderboard: React.FC = () => {
 
     useEffect(() => {
         fetchLeaderboard();
-    }, [page, filter, userTypeFilter]);
+    }, [page, activeSorts, userTypeFilter, debouncedSearch]);
 
     const handleDownload = async () => {
         setDownloading(true);
         try {
-            // Fetch all users for download (maybe limit to top 100 or current view? User said 'download the excel', usually implies all or current dataset)
-            // For now, let's download the current view's data or fetch a larger set. 
-            // Given pagination, fetching ALL might be heavy. Let's fetch current page + maybe limit to 100 if user wants "Leaderboard". 
-            // Let's just download the currently visible users for simplicity first, or fetch with higher limit.
-            // Better: Fetch with higher limit like 100 for download.
-            const data = await api.get(`/leaderboard?limit=100&sortBy=${filter}&type=${userTypeFilter}`);
+            const sortParam = activeSorts.map(s => `${s.key}:${s.order}`).join(',');
+            const data = await api.get(`/leaderboard?limit=100&sortBy=${sortParam}&type=${userTypeFilter}&search=${debouncedSearch}`);
             const downloadUsers: LeaderboardUser[] = data.data;
 
             const headers = ['Rank', 'Name', 'Username', 'Type', 'Total Likes', 'CGPA', 'LC Solved', 'CF Rating', 'HR Badges'];
@@ -84,7 +95,7 @@ const Leaderboard: React.FC = () => {
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', `leaderboard_${filter}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `leaderboard_${new Date().toISOString().split('T')[0]}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -120,8 +131,8 @@ const Leaderboard: React.FC = () => {
         return <span className="font-bold text-gray-500 w-6 text-center">{rank}</span>;
     };
 
-    const getPrimaryStat = (u: LeaderboardUser) => {
-        switch (filter) {
+    const getPrimaryStat = (u: LeaderboardUser, key: string) => {
+        switch (key) {
             case 'leetcode':
                 return { value: u.stats?.leetcode?.solved || 0, label: 'Solved' };
             case 'codeforces':
@@ -135,6 +146,8 @@ const Leaderboard: React.FC = () => {
                 return { value: u.stats?.totalLikes || 0, label: 'Likes' };
         }
     };
+
+    const isSortedBy = (key: string) => activeSorts.some(s => s.key === key);
 
     return (
         <div className="min-h-screen pt-32 pb-12 bg-black text-white px-4 relative overflow-hidden overflow-y-auto w-full">
@@ -172,31 +185,75 @@ const Leaderboard: React.FC = () => {
                 {/* Filters */}
                 <div className="flex flex-col md:flex-row gap-4 mb-8 justify-between items-end md:items-center">
                     <div className="flex flex-wrap gap-2 bg-white/5 p-1 rounded-xl backdrop-blur-md border border-white/10 w-fit">
-                        {(['likes', 'leetcode', 'codeforces', 'hackerrank', 'cgpa'] as const).map((f) => (
-                            <button
-                                key={f}
-                                onClick={() => { setFilter(f); setPage(1); }}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${filter === f ? 'bg-white/10 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                    }`}
-                            >
-                                {f === 'cgpa' ? 'CGPA' : f}
-                            </button>
-                        ))}
+                        {(['likes', 'leetcode', 'codeforces', 'hackerrank', 'cgpa'] as const).map((f) => {
+                            const activeIndex = activeSorts.findIndex(s => s.key === f);
+                            const isActive = activeIndex !== -1;
+                            const sort = activeSorts[activeIndex];
+
+                            return (
+                                <button
+                                    key={f}
+                                    onClick={() => {
+                                        setActiveSorts(prev => {
+                                            const existingIndex = prev.findIndex(s => s.key === f);
+                                            if (existingIndex !== -1) {
+                                                // Toggle order if clicked again
+                                                const newSorts = [...prev];
+                                                newSorts[existingIndex] = { ...newSorts[existingIndex], order: newSorts[existingIndex].order === 'desc' ? 'asc' : 'desc' };
+                                                return newSorts;
+                                            } else {
+                                                // Add to end
+                                                return [...prev, { key: f, order: 'desc' }];
+                                            }
+                                        });
+                                        setPage(1);
+                                    }}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center gap-1 ${isActive ? 'bg-white/10 text-white shadow-lg border border-white/20' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                        }`}
+                                >
+                                    {f === 'cgpa' ? 'CGPA' : f}
+                                    {isActive && (
+                                        <div className="flex items-center gap-1 ml-1">
+                                            <span className="text-xs font-bold bg-blue-500/20 px-1.5 rounded-full text-blue-300">{activeIndex + 1}</span>
+                                            <span className="text-xs">{sort?.order === 'desc' ? '↓' : '↑'}</span>
+                                        </div>
+                                    )}
+                                </button>
+                            );
+                        })}
+                        <button
+                            onClick={() => setActiveSorts([])}
+                            className="px-3 py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                        >
+                            Reset
+                        </button>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white/5 p-1 px-3 rounded-xl backdrop-blur-md border border-white/10">
-                        <span className="text-gray-400 text-sm">Type:</span>
-                        <select
-                            value={userTypeFilter}
-                            onChange={(e) => { setUserTypeFilter(e.target.value); setPage(1); }}
-                            className="bg-transparent text-white text-sm outline-none border-none p-1 cursor-pointer"
-                        >
-                            <option value="All" className="bg-black text-white">All</option>
-                            <option value="Student" className="bg-black text-white">Student</option>
-                            <option value="Professional" className="bg-black text-white">Professional</option>
-                            <option value="Alumni" className="bg-black text-white">Alumni</option>
-                            <option value="Other" className="bg-black text-white">Other</option>
-                        </select>
+                    <div className="flex gap-4">
+                        <div className="flex items-center gap-2 bg-white/5 p-1 px-3 rounded-xl backdrop-blur-md border border-white/10">
+                            <Search size={16} className="text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search user..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="bg-transparent text-white text-sm outline-none border-none p-1 w-32 md:w-48 placeholder-gray-600"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-white/5 p-1 px-3 rounded-xl backdrop-blur-md border border-white/10">
+                            <span className="text-gray-400 text-sm">Type:</span>
+                            <select
+                                value={userTypeFilter}
+                                onChange={(e) => { setUserTypeFilter(e.target.value); setPage(1); }}
+                                className="bg-transparent text-white text-sm outline-none border-none p-1 cursor-pointer"
+                            >
+                                <option value="All" className="bg-black text-white">All</option>
+                                <option value="Student" className="bg-black text-white">Student</option>
+                                <option value="Professional" className="bg-black text-white">Professional</option>
+                                <option value="Other" className="bg-black text-white">Other</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -214,13 +271,14 @@ const Leaderboard: React.FC = () => {
                                         <th className="p-4 w-16 text-center">Rank</th>
                                         <th className="p-4">User</th>
                                         <th className="p-4 hidden md:table-cell">Type</th>
-                                        <th className="p-4 text-right">{filter === 'likes' ? 'Total Likes' : (filter === 'cgpa' ? 'CGPA' : filter)}</th>
+                                        <th className="p-4 text-right">
+                                            {activeSorts.length > 0 ? activeSorts.map(s => s.key === 'cgpa' ? 'CGPA' : s.key).join(' > ') : 'Stats'}
+                                        </th>
                                         <th className="p-4 text-right hidden md:table-cell">Other Stats</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {users.map((u, i) => {
-                                        const stat = getPrimaryStat(u);
                                         return (
                                             <tr key={u._id} className="hover:bg-white/5 transition-colors group border-b border-white/5 last:border-0 h-20">
                                                 <td className="p-4 text-center">
@@ -245,24 +303,33 @@ const Leaderboard: React.FC = () => {
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-right">
-                                                    <div className="font-bold text-xl text-white">{stat.value}</div>
-                                                    <div className="text-xs text-gray-500 capitalize">{stat.label}</div>
+                                                    {/* Display primary stat of the first sort key, or Likes default */}
+                                                    <div className="font-bold text-xl text-white">
+                                                        {activeSorts.length > 0
+                                                            ? getPrimaryStat(u, activeSorts[0].key).value
+                                                            : u.stats.totalLikes}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 capitalize">
+                                                        {activeSorts.length > 0
+                                                            ? getPrimaryStat(u, activeSorts[0].key).label
+                                                            : 'Likes'}
+                                                    </div>
                                                 </td>
                                                 <td className="p-4 text-right hidden md:table-cell">
                                                     <div className="flex justify-end gap-4 text-xs text-gray-400">
-                                                        {filter !== 'likes' && (
+                                                        {!isSortedBy('likes') && (
                                                             <div className="flex flex-col items-end">
                                                                 <span className="font-bold text-white">{u.stats?.totalLikes || 0}</span>
                                                                 <span>Likes</span>
                                                             </div>
                                                         )}
-                                                        {filter !== 'leetcode' && (
+                                                        {!isSortedBy('leetcode') && (
                                                             <div className="flex flex-col items-end">
                                                                 <span className="font-bold text-white">{u.stats?.leetcode?.solved || 0}</span>
                                                                 <span>LC Solved</span>
                                                             </div>
                                                         )}
-                                                        {filter !== 'codeforces' && (
+                                                        {!isSortedBy('codeforces') && (
                                                             <div className="flex flex-col items-end">
                                                                 <span className="font-bold text-white">{u.stats?.codeforces?.rating || 0}</span>
                                                                 <span>CF Rating</span>
