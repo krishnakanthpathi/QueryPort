@@ -61,7 +61,14 @@ const fetchHackerRankStats = async (username: string) => {
             headers: { 'User-Agent': 'Mozilla/5.0' },
             timeout: 5000
         });
-        const badges = response.data.models ? response.data.models.length : 0;
+
+        let badges = 0;
+        if (response.data.models) {
+            // Filter badges that have at least 1 star
+            const activeBadges = response.data.models.filter((b: any) => b.stars > 0);
+            badges = activeBadges.length;
+        }
+
         return { badges, points: 0 }; // Points require another call or scraping, keeping it simple for now
     } catch (error) {
         console.error(`HackerRank fetch failed for ${username}`, error);
