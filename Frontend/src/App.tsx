@@ -13,6 +13,12 @@ import Skills from './components/Skills';
 import Certifications from "./components/Certifications";
 import CertificationView from "./components/CertificationView";
 import Leaderboard from "./components/Leaderboard";
+import DocsLayout from "./components/Docs/DocsLayout";
+import DocsIntro from "./components/Docs/DocsIntro";
+import DocsProfile from "./components/Docs/DocsProfile";
+import DocsProjects from "./components/Docs/DocsProjects";
+import DocsAchievements from "./components/Docs/DocsAchievements";
+import DocsLeaderboard from "./components/Docs/DocsLeaderboard";
 
 import { useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toast";
@@ -97,6 +103,15 @@ const App: React.FC = () => {
 
           <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
           <Route path="/u/:username" element={<Profile />} />
+
+          {/* Documentation Routes */}
+          <Route path="/docs" element={<DocsLayout />}>
+            <Route index element={<DocsIntro />} />
+            <Route path="profile" element={<DocsProfile />} />
+            <Route path="projects" element={<DocsProjects />} />
+            <Route path="achievements" element={<DocsAchievements />} />
+            <Route path="leaderboard" element={<DocsLeaderboard />} />
+          </Route>
         </Routes>
       </ToastProvider>
     </GoogleOAuthProvider>
