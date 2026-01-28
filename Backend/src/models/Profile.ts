@@ -57,7 +57,13 @@ const profileSchema = new mongoose.Schema(
             },
             github: {
                 contributions: { type: Number, default: 0 }
-            }
+            },
+            cgpa: { type: Number, default: 0 }
+        },
+        type: {
+            type: String,
+            enum: ['Student', 'Professional', 'Alumni', 'Other'],
+            default: 'Student'
         },
     },
     {

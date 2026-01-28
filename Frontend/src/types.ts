@@ -36,7 +36,9 @@ export interface Profile {
         codeforces?: { rating: number; maxRating?: number };
         hackerrank?: { badges: number; points?: number };
         github?: { contributions: number };
+        cgpa?: number;
     };
+    type?: 'Student' | 'Professional' | 'Alumni' | 'Other';
 }
 
 export interface Project {

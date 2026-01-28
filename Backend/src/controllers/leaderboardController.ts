@@ -3,6 +3,8 @@ import axios from 'axios';
 import Profile from '../models/Profile.js';
 import Project from '../models/Project.js';
 
+import Education from '../models/Education.js';
+
 // --- Helper Functions to Fetch External Data ---
 
 const fetchLeetCodeStats = async (username: string) => {
@@ -70,16 +72,7 @@ const fetchHackerRankStats = async (username: string) => {
 // --- Controllers ---
 
 export const syncStats = async (req: Request, res: Response) => {
-    // Expect user to be authenticated and attached to req.user (middleware)
-    // For manual sync, we use the logged-in user.
-    // We can also allow an admin to sync others or sync by ID if needed, 
-    // but typically users sync their own.
-
-    // Assuming authMiddleware attaches user to req.body.user or req.user
-    // But commonly in this project structure it seems we might need to look at how auth is handled.
-    // Based on profileController, it seems we use `req.user` if extended, or maybe just passed.
-    // Let's assume standard `req.user` from a middleware.
-
+    // Expect user to be attached to req (middleware)
     const userId = (req as any).user?._id || (req as any).user?.id;
 
     if (!userId) {
@@ -90,19 +83,14 @@ export const syncStats = async (req: Request, res: Response) => {
         // 1. Get Profile
         const profile = await Profile.findOne({ user: userId });
         if (!profile) {
-            console.log('Profile not found for user:', userId);
             return res.status(404).json({ status: 'fail', message: 'Profile not found' });
         }
-        console.log('Found profile:', profile._id);
 
         // 2. Fetch Project Likes
-        // Aggregate total likes from all projects by this user
-        console.log('Aggregating likes for userId:', profile.user);
         const projectStats = await Project.aggregate([
             { $match: { userId: profile.user } },
             { $group: { _id: null, totalLikes: { $sum: '$likes' } } }
         ]);
-        console.log('Project stats result:', projectStats);
         const totalLikes = projectStats.length > 0 ? projectStats[0].totalLikes : 0;
 
         // 3. Fetch External Stats
@@ -110,7 +98,7 @@ export const syncStats = async (req: Request, res: Response) => {
         const codingProfiles = p.codingProfiles || {};
 
         // Safely extract existing stats
-        const currentStats = p.stats ? JSON.parse(JSON.stringify(p.stats)) : {}; // Deep clone to avoid mongoose reference issues
+        const currentStats = p.stats ? JSON.parse(JSON.stringify(p.stats)) : {};
 
         let leetcodeData = { solved: 0 };
         if (codingProfiles.leetcode) {
@@ -127,24 +115,61 @@ export const syncStats = async (req: Request, res: Response) => {
             hackerrankData = await fetchHackerRankStats(codingProfiles.hackerrank);
         }
 
-        // 4. Update Profile
-        // Construct new stats object
+        // 4. Fetch Education for CGPA & User Type
+        const educationList = await Education.find({ userId: userId }).sort({ endDate: -1, startDate: -1 }); // Most recent first
+        let cgpa = 0;
+        let userType = 'Student'; // Default or fallback
+
+        if (educationList.length > 0 && educationList[0]) {
+            const recentEdu = educationList[0];
+
+            // Try to extract CGPA
+            if (recentEdu.score) {
+                const parsed = parseFloat(recentEdu.score);
+                if (!isNaN(parsed)) {
+                    cgpa = parsed;
+                }
+            } else if (recentEdu.semesters && recentEdu.semesters.length > 0) {
+                // Try to get max/latest cgpa from semesters if overall score is missing?
+                // Or just leave as 0 if not explicitly in score.
+                // Let's stick to overall score for now as per plan, or simpler logic.
+                // Actually, let's try to check the last semester's CGPA if available
+                const lastSem = recentEdu.semesters[recentEdu.semesters.length - 1];
+                if (lastSem && lastSem.cgpa) {
+                    const parsedSemCgpa = parseFloat(lastSem.cgpa);
+                    if (!isNaN(parsedSemCgpa)) cgpa = parsedSemCgpa;
+                }
+            }
+
+            // Infer Type
+            // If any education is marked current -> Student
+            const isStudent = educationList.some(edu => edu.current);
+            userType = isStudent ? 'Student' : 'Professional';
+            // Logic can be refined (e.g. Alumni if no current education but has a degree)
+            // Sticking to simple Student vs Professional for now based on 'current' flag
+        } else {
+            userType = 'Other';
+        }
+
+
+        // 5. Update Profile
         const newStats = {
             totalLikes,
             leetcode: { ...(currentStats.leetcode || {}), solved: leetcodeData.solved },
             codeforces: { ...(currentStats.codeforces || {}), ...codeforcesData },
             hackerrank: { ...(currentStats.hackerrank || {}), badges: hackerrankData.badges },
-            github: currentStats.github || { contributions: 0 }
+            github: currentStats.github || { contributions: 0 },
+            cgpa
         };
 
-        // Explicitly set stats
         profile.set('stats', newStats);
+        profile.set('type', userType);
 
         await profile.save();
 
         res.status(200).json({
             status: 'success',
-            data: { stats: newStats }
+            data: { stats: newStats, type: userType }
         });
 
     } catch (error: any) {
@@ -157,10 +182,16 @@ export const getLeaderboard = async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
-        const sortBy = (req.query.sortBy as string) || 'likes'; // likes, leetcode, codeforces, hackerrank
+        const sortBy = (req.query.sortBy as string) || 'likes';
+        const typeFilter = (req.query.type as string);
         const skip = (page - 1) * limit;
 
         let sortQuery: any = {};
+        let filterQuery: any = {};
+
+        if (typeFilter && typeFilter !== 'All') {
+            filterQuery.type = typeFilter;
+        }
 
         switch (sortBy) {
             case 'leetcode':
@@ -172,19 +203,22 @@ export const getLeaderboard = async (req: Request, res: Response) => {
             case 'hackerrank':
                 sortQuery = { 'stats.hackerrank.badges': -1 };
                 break;
+            case 'cgpa':
+                sortQuery = { 'stats.cgpa': -1 };
+                break;
             case 'likes':
             default:
                 sortQuery = { 'stats.totalLikes': -1 };
                 break;
         }
 
-        const leaderboard = await Profile.find()
+        const leaderboard = await Profile.find(filterQuery)
             .sort(sortQuery)
             .skip(skip)
             .limit(limit)
             .populate('user', 'name username avatar'); // Populate user details
 
-        const total = await Profile.countDocuments();
+        const total = await Profile.countDocuments(filterQuery);
 
         res.status(200).json({
             status: 'success',
