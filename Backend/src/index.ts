@@ -7,7 +7,7 @@ import routes from './routes/index.js';
 import globalErrorHandler from './controllers/errorController.js';
 import compression from 'compression';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 
 dotenv.config();
 
