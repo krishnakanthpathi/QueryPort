@@ -16,6 +16,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.8.1",
     "@types/express": "^5.0.5",
+    "@types/ioredis": "^4.28.10",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "ts-node": "^10.9.2",
@@ -33,6 +34,7 @@
     "express-rate-limit": "^8.2.1",
     "google-auth-library": "^10.5.0",
     "helmet": "^8.1.0",
+    "ioredis": "^5.9.3",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.1",
     "multer": "^2.0.2"

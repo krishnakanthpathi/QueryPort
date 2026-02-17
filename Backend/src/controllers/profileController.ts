@@ -7,10 +7,26 @@ import Certification from '../models/Certification.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/AppError.js';
 import { cloudinary } from '../utils/cloudinary.js';
+import redis from '../utils/redis.js';
 
 // Public: Get Profile by Username
 export const getProfileByUsername = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { username } = req.params;
+
+    // Check Redis Cache
+    const cacheKey = `profile:${username}`;
+    try {
+        const cachedData = await redis.get(cacheKey);
+        if (cachedData) {
+            return res.status(200).json({
+                status: 'success',
+                source: 'cache',
+                data: JSON.parse(cachedData)
+            });
+        }
+    } catch (error) {
+        console.error('Redis error:', error);
+    }
 
     const user = await User.findOne({ username } as any);
     if (!user) {
@@ -51,14 +67,23 @@ export const getProfileByUsername = catchAsync(async (req: Request, res: Respons
         });
     }
 
+    const responseData = {
+        profile,
+        projects,
+        achievements,
+        certifications
+    };
+
+    // Set Redis Cache
+    try {
+        await redis.set(cacheKey, JSON.stringify(responseData), 'EX', 600);
+    } catch (error) {
+        console.error('Redis error:', error);
+    }
+
     res.status(200).json({
         status: 'success',
-        data: {
-            profile,
-            projects,
-            achievements,
-            certifications
-        },
+        data: responseData,
     });
 });
 
@@ -207,6 +232,14 @@ export const updateProfile = catchAsync(async (req: Request, res: Response, next
         profileFields.user = userId;
         profile = await Profile.create(profileFields);
         profile = await profile.populate('user', 'name email avatar username');
+    }
+
+    // Invalidate Redis Cache
+    if (profile && profile.user) {
+        const username = (profile.user as any).username;
+        if (username) {
+            await redis.del(`profile:${username}`);
+        }
     }
 
     res.status(200).json({
