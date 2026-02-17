@@ -6,7 +6,7 @@ import AppError from './utils/AppError.js';
 import routes from './routes/index.js';
 import globalErrorHandler from './controllers/errorController.js';
 import compression from 'compression';
-import helmet from 'helmet';
+import * as helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 
 dotenv.config();
@@ -16,7 +16,7 @@ connectDB();
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet.default());
 
 const limiter = rateLimit({
   max: 500, // Temporary limit for testing
