@@ -71,6 +71,8 @@ const profileSchema = new mongoose.Schema(
     }
 );
 
+profileSchema.index({ 'stats.cgpa': -1 });
+
 const Profile = mongoose.model('Profile', profileSchema);
 
 export default Profile;
