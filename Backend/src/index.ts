@@ -5,6 +5,9 @@ import connectDB from './config/db.js';
 import AppError from './utils/AppError.js';
 import routes from './routes/index.js';
 import globalErrorHandler from './controllers/errorController.js';
+import compression from 'compression';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -13,8 +16,19 @@ connectDB();
 
 const app = express();
 
+app.use(helmet());
+
+const limiter = rateLimit({
+  max: 500, // Temporary limit for testing
+  windowMs: 60 * 60 * 1000, // 1 hour
+  message: 'Too many requests from this IP, please try again in an hour!'
+});
+
+app.use('/api', limiter);
+app.use(compression());
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 
 // Routes
 app.use('/api/v1', routes);
