@@ -7,18 +7,12 @@ import routes from './routes/index.js';
 import globalErrorHandler from './controllers/errorController.js';
 import compression from 'compression';
 import { rateLimit } from 'express-rate-limit';
-import { createRequire } from 'module';
 
 dotenv.config();
 
 connectDB();
 
 const app = express();
-
-const require = createRequire(import.meta.url);
-const helmet = require('helmet');
-
-app.use(helmet());
 
 const limiter = rateLimit({
   max: 500, // Temporary limit for testing
@@ -29,7 +23,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 app.use(compression());
 
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '10kb' }));
 
 // Routes
