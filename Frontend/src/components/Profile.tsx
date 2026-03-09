@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import type { Profile as ProfileType, Project, Achievement, Certification, Education } from '../types';
+import type { Profile as ProfileType, Project, Achievement, Certification, Education, Experience } from '../types';
 import { Edit2, MapPin, Save, X, Globe, FileText, Upload, Code, ExternalLink, Award, Heart } from 'lucide-react'; // Added icons
 import EducationList from './EducationList';
+import ExperienceList from './ExperienceList';
 import { DEFAULT_AVATAR_URL } from '../constants';
 import CodingHeatmaps from './CodingHeatmaps';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -23,6 +24,7 @@ const Profile: React.FC = () => {
     const [achievements, setAchievements] = useState<Achievement[]>([]);
     const [certifications, setCertifications] = useState<Certification[]>([]);
     const [education, setEducation] = useState<Education[]>([]);
+    const [experience, setExperience] = useState<Experience[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -57,34 +59,35 @@ const Profile: React.FC = () => {
                 setProjects([]);
                 setAchievements([]);
                 setCertifications([]);
+                setEducation([]);
+                setExperience([]);
 
                 let data;
 
                 if (isPublicView) {
                     // Public Profile Fetch
                     data = await api.get(`/profile/u/${username}`);
-                    // The public endpoint returns { profile, projects, achievements, certifications}
+                    // The public endpoint returns { profile, projects, achievements, certifications, education, experience }
                     setProjects(data.data.projects || []);
                     setAchievements(data.data.achievements || []);
                     setCertifications(data.data.certifications || []);
                     setEducation(data.data.education || []);
+                    setExperience(data.data.experience || []);
                 } else {
                     // My Profile Fetch (Private)
                     data = await api.get('/profile/me');
-                    // /me currently matches only profile (unless we update it too, but we kept it simple)
-                    // We clear others to avoid stale state if switching users theoretically
                     setProjects([]);
                     setAchievements([]);
                     setCertifications([]);
                     setEducation([]);
+                    setExperience([]);
 
-                    // Fetch my education separately or bundled? API design choice.
-                    // Let's assume /me returns profile only, and we need to fetch others?
-                    // Actually, for profile page we likely want aggregated.
-                    // But if /me only returns profile, let's fetch others in parallel or separate effects.
-                    // For now, let's fetch education separately for 'me' via new hook or API call
-                    const educationRes = await api.get('/education');
+                    const [educationRes, experienceRes] = await Promise.all([
+                        api.get('/education'),
+                        api.get('/experience')
+                    ]);
                     setEducation(educationRes.data.education);
+                    setExperience(experienceRes.data.experience);
                 }
 
                 setProfile(data.data.profile);
@@ -521,11 +524,25 @@ const Profile: React.FC = () => {
                         education={education}
                         isEditing={isEditing}
                         onUpdate={() => {
-                            // Re-fetch education
                             if (isPublicView) {
                                 api.get(`/education/u/${username}`).then((res) => setEducation(res.data.education));
                             } else {
                                 api.get('/education').then((res) => setEducation(res.data.education));
+                            }
+                        }}
+                    />
+                </div>
+
+                {/* Experience Section */}
+                <div className="mb-8 mt-16 w-full max-w-4xl mx-auto">
+                    <ExperienceList
+                        experience={experience}
+                        isEditing={isEditing}
+                        onUpdate={() => {
+                            if (isPublicView) {
+                                api.get(`/experience/u/${username}`).then((res) => setExperience(res.data.experience));
+                            } else {
+                                api.get('/experience').then((res) => setExperience(res.data.experience));
                             }
                         }}
                     />

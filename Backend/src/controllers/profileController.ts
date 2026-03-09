@@ -4,6 +4,8 @@ import User from '../models/User.js';
 import Project from '../models/Project.js';
 import Achievement from '../models/Achievement.js';
 import Certification from '../models/Certification.js';
+import Education from '../models/Education.js';
+import Experience from '../models/Experience.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/AppError.js';
 import { cloudinary } from '../utils/cloudinary.js';
@@ -40,11 +42,13 @@ export const getProfileByUsername = catchAsync(async (req: Request, res: Respons
         .populate('skills');
 
     // Fetch related data in parallel
-    const [profile, projects, achievements, certifications] = await Promise.all([
+    const [profile, projects, achievements, certifications, education, experience] = await Promise.all([
         profilePromise,
         Project.find({ userId: userId, status: 'published' }).sort({ createdAt: -1 }),
         Achievement.find({ userId: userId }).sort({ date: -1 }),
-        Certification.find({ userId: userId }).sort({ issueDate: -1 })
+        Certification.find({ userId: userId }).sort({ issueDate: -1 }),
+        Education.find({ userId: userId }).sort({ startDate: -1 }),
+        Experience.find({ userId: userId }).sort({ startDate: -1 })
     ]);
 
     if (!profile) {
@@ -62,7 +66,9 @@ export const getProfileByUsername = catchAsync(async (req: Request, res: Respons
                 },
                 projects,
                 achievements,
-                certifications
+                certifications,
+                education,
+                experience
             },
         });
     }
@@ -71,7 +77,9 @@ export const getProfileByUsername = catchAsync(async (req: Request, res: Respons
         profile,
         projects,
         achievements,
-        certifications
+        certifications,
+        education,
+        experience
     };
 
     // Set Redis Cache

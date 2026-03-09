@@ -95,6 +95,21 @@ export interface Certification {
 
 
 
+export interface Experience {
+    _id?: string;
+    company: string;
+    role: string;
+    startDate: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string;
+    location?: string;
+    logo?: string;
+    userId?: User | string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export interface Education {
     _id?: string;
     institution: string;
