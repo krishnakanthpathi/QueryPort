@@ -97,7 +97,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                     value={formData.institution}
                     onChange={handleChange}
                     required
-                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
                 />
                 <input
                     name="degree"
@@ -105,7 +105,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                     value={formData.degree}
                     onChange={handleChange}
                     required
-                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
                 />
                 <input
                     name="fieldOfStudy"
@@ -113,14 +113,14 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                     value={formData.fieldOfStudy}
                     onChange={handleChange}
                     required
-                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
                 />
                 <input
                     name="score"
                     placeholder="Overall Grade/CGPA (e.g. 9.5)"
                     value={formData.score}
                     onChange={handleChange}
-                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
                 />
             </div>
 
@@ -133,7 +133,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                         value={formData.startDate}
                         onChange={handleChange}
                         required
-                        className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                        className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
                     />
                 </div>
                 <div>
@@ -144,7 +144,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                         value={formData.endDate}
                         onChange={handleChange}
                         disabled={formData.current}
-                        className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none disabled:opacity-50"
+                        className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none disabled:opacity-50"
                     />
                 </div>
             </div>
@@ -155,7 +155,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                     id="current"
                     checked={formData.current}
                     onChange={handleCheckboxChange}
-                    className="rounded bg-black/50 border-white/20 text-purple-500 focus:ring-purple-500"
+                    className="rounded bg-black/50 border-white/20 text-blue-500 focus:ring-blue-500"
                 />
                 <label htmlFor="current" className="text-sm text-gray-300">I am currently studying here</label>
             </div>
@@ -166,7 +166,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                 rows={3}
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
             />
 
             {/* Semester Marks Section */}
@@ -176,7 +176,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                     <button
                         type="button"
                         onClick={addSemester}
-                        className="text-xs flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-purple-300 transition-colors"
+                        className="text-xs flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-blue-300 transition-colors"
                     >
                         <Plus size={12} /> Add Semester
                     </button>
@@ -190,7 +190,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                                 placeholder="SGPA/Marks"
                                 value={sem.sgpa}
                                 onChange={(e) => updateSemester(index, 'sgpa', e.target.value)}
-                                className="flex-1 bg-black/50 border border-white/20 rounded p-1.5 text-sm focus:border-purple-400 focus:outline-none"
+                                className="flex-1 bg-black/50 border border-white/20 rounded p-1.5 text-sm focus:border-blue-400 focus:outline-none"
                             />
                             <button
                                 type="button"
@@ -211,7 +211,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ initialData, onSave, onCa
                 <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition-colors disabled:opacity-50"
                 >
                     {loading ? 'Saving...' : 'Save Education'}
                 </button>

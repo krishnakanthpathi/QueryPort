@@ -442,6 +442,44 @@ const Profile: React.FC = () => {
                             </div>
                         </section>
 
+                        {/* Coding Profiles - show when not editing and at least one profile is set */}
+                        {!isEditing && (() => {
+                            const profiles = profile?.codingProfiles || formData.codingProfiles;
+                            const entries = [
+                                { key: 'github', label: 'GitHub', url: (u: string) => `https://github.com/${u}` },
+                                { key: 'leetcode', label: 'LeetCode', url: (u: string) => `https://leetcode.com/u/${u}` },
+                                { key: 'codeforces', label: 'Codeforces', url: (u: string) => `https://codeforces.com/profile/${u}` },
+                                { key: 'hackerrank', label: 'HackerRank', url: (u: string) => `https://www.hackerrank.com/${u}` },
+                                { key: 'codechef', label: 'CodeChef', url: (u: string) => `https://www.codechef.com/users/${u}` },
+                            ].filter(e => profiles?.[e.key as keyof typeof profiles]?.trim());
+                            if (entries.length === 0) return null;
+                            return (
+                                <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-xl">
+                                    <h3 className="text-xl font-bold mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+                                        <Code size={20} /> Coding Profiles
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {entries.map(({ key, label, url }) => {
+                                            const username = (profiles![key as keyof typeof profiles] as string)?.trim();
+                                            return (
+                                                <a
+                                                    key={key}
+                                                    href={url(username)}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="flex items-center justify-between gap-3 text-gray-300 hover:text-white transition-colors bg-white/5 p-3 rounded-lg border border-white/5 hover:border-white/30"
+                                                >
+                                                    <span>{label}</span>
+                                                    <span className="text-sm text-gray-400 truncate max-w-[120px]">@{username}</span>
+                                                    <ExternalLink size={14} className="flex-shrink-0" />
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            );
+                        })()}
+
                         {isEditing && (
                             <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-xl">
                                 <h3 className="text-xl font-bold mb-4 border-b border-white/10 pb-2 flex items-center gap-2">

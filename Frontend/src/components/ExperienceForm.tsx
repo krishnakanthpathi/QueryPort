@@ -70,7 +70,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ initialData, onSave, on
                     value={formData.company}
                     onChange={handleChange}
                     required
-                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
                 />
                 <input
                     name="role"
@@ -78,14 +78,14 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ initialData, onSave, on
                     value={formData.role}
                     onChange={handleChange}
                     required
-                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
                 />
                 <input
                     name="location"
                     placeholder="Location (e.g. Remote, New York)"
                     value={formData.location}
                     onChange={handleChange}
-                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none md:col-span-2"
+                    className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none md:col-span-2"
                 />
             </div>
 
@@ -98,7 +98,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ initialData, onSave, on
                         value={formData.startDate}
                         onChange={handleChange}
                         required
-                        className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                        className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
                     />
                 </div>
                 <div>
@@ -109,7 +109,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ initialData, onSave, on
                         value={formData.endDate}
                         onChange={handleChange}
                         disabled={formData.current}
-                        className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none disabled:opacity-50"
+                        className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none disabled:opacity-50"
                     />
                 </div>
             </div>
@@ -120,7 +120,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ initialData, onSave, on
                     id="current"
                     checked={formData.current}
                     onChange={handleCheckboxChange}
-                    className="rounded bg-black/50 border-white/20 text-purple-500 focus:ring-purple-500"
+                    className="rounded bg-black/50 border-white/20 text-blue-500 focus:ring-blue-500"
                 />
                 <label htmlFor="current" className="text-sm text-gray-300">I currently work here</label>
             </div>
@@ -131,14 +131,14 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({ initialData, onSave, on
                 rows={3}
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-purple-400 focus:outline-none"
+                className="w-full bg-black/50 border border-white/20 rounded p-2 focus:border-blue-400 focus:outline-none"
             />
 
             <div className="flex gap-4 pt-2">
                 <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition-colors disabled:opacity-50"
                 >
                     {loading ? 'Saving...' : 'Save Experience'}
                 </button>

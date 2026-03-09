@@ -36,12 +36,12 @@ const EducationList: React.FC<EducationListProps> = ({ education, isEditing, onU
         <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-xl">
             <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-2">
                 <h3 className="text-2xl font-bold flex items-center gap-2">
-                    <BookOpen className="text-purple-400" /> Education
+                    <BookOpen className="text-blue-400" /> Education
                 </h3>
                 {isEditing && !isAdding && !editingId && (
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="flex items-center gap-2 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 px-3 py-1 rounded-lg text-sm transition-colors"
+                        className="flex items-center gap-2 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 px-3 py-1 rounded-lg text-sm transition-colors"
                     >
                         <Plus size={16} /> Add Education
                     </button>
@@ -49,7 +49,7 @@ const EducationList: React.FC<EducationListProps> = ({ education, isEditing, onU
             </div>
 
             {isAdding && (
-                <div className="mb-8 p-4 bg-black/30 rounded-xl border border-purple-500/30">
+                <div className="mb-8 p-4 bg-black/30 rounded-xl border border-blue-500/30">
                     <EducationForm
                         onSave={() => { setIsAdding(false); onUpdate(); }}
                         onCancel={() => setIsAdding(false)}
@@ -58,7 +58,7 @@ const EducationList: React.FC<EducationListProps> = ({ education, isEditing, onU
             )}
 
             {editingId && (
-                <div className="mb-8 p-4 bg-black/30 rounded-xl border border-purple-500/30">
+                <div className="mb-8 p-4 bg-black/30 rounded-xl border border-blue-500/30">
                     <EducationForm
                         initialData={education.find(e => e._id === editingId)}
                         onSave={() => { setEditingId(null); onUpdate(); }}
@@ -70,12 +70,12 @@ const EducationList: React.FC<EducationListProps> = ({ education, isEditing, onU
             <div className="space-y-6">
                 {education.map((edu) => (
                     <div key={edu._id} className="relative pl-6 border-l-2 border-white/10 last:border-0">
-                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-purple-500 border-2 border-black"></div>
+                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-black"></div>
 
                         <div className="flex justify-between items-start">
                             <div className="flex-1">
                                 <h4 className="text-lg font-bold text-white">{edu.institution}</h4>
-                                <p className="text-purple-300">{edu.degree} in {edu.fieldOfStudy}</p>
+                                <p className="text-blue-300">{edu.degree} in {edu.fieldOfStudy}</p>
                                 <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
                                     <Calendar size={14} />
                                     <span>
