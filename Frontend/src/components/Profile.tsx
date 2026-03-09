@@ -92,22 +92,22 @@ const Profile: React.FC = () => {
 
                 setProfile(data.data.profile);
 
-                // Initialize form data (Only needed if NOT public view or if we allow editing own public profile)
-                if (!isPublicView && data.data.profile) {
+                // Initialize form data when viewing own profile (so edit form has correct values)
+                if (!isPublicView) {
                     const profileData = data.data.profile;
                     setFormData({
-                        bio: profileData.bio || '',
-                        title: profileData.title || '',
-                        locations: profileData.locations || '',
-                        resume: profileData.resume || '',
-                        avatar: profileData.user?.avatar || user?.avatar || '',
-                        socialLinks: profileData.socialLinks || [],
+                        bio: profileData?.bio || '',
+                        title: profileData?.title || '',
+                        locations: profileData?.locations || '',
+                        resume: profileData?.resume || '',
+                        avatar: profileData?.user?.avatar || user?.avatar || '',
+                        socialLinks: profileData?.socialLinks || [],
                         codingProfiles: {
-                            github: profileData.codingProfiles?.github || '',
-                            leetcode: profileData.codingProfiles?.leetcode || '',
-                            codeforces: profileData.codingProfiles?.codeforces || '',
-                            hackerrank: profileData.codingProfiles?.hackerrank || '',
-                            codechef: profileData.codingProfiles?.codechef || ''
+                            github: profileData?.codingProfiles?.github || '',
+                            leetcode: profileData?.codingProfiles?.leetcode || '',
+                            codeforces: profileData?.codingProfiles?.codeforces || '',
+                            hackerrank: profileData?.codingProfiles?.hackerrank || '',
+                            codechef: profileData?.codingProfiles?.codechef || ''
                         }
                     });
                 }

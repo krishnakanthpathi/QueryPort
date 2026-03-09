@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Experience } from '../types';
-import { Briefcase, Calendar, Edit2, Trash2, Plus, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
+import { Calendar, Edit2, Trash2, Plus, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import ExperienceForm from './ExperienceForm';
 import { api } from '../lib/api';
 import { useToast } from './Toast';
@@ -35,9 +35,7 @@ const ExperienceList: React.FC<ExperienceListProps> = ({ experience, isEditing, 
     return (
         <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-xl">
             <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-2">
-                <h3 className="text-2xl font-bold flex items-center gap-2">
-                    <Briefcase className="text-blue-400" /> Experience
-                </h3>
+                <h3 className="text-2xl font-bold">Experience</h3>
                 {isEditing && !isAdding && !editingId && (
                     <button
                         onClick={() => setIsAdding(true)}
