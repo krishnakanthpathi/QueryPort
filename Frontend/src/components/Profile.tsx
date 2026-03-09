@@ -34,6 +34,8 @@ const Profile: React.FC = () => {
 
     // Form State
     const [formData, setFormData] = useState({
+        name: '',
+        username: '',
         bio: '',
         title: '',
         locations: '',
@@ -96,6 +98,8 @@ const Profile: React.FC = () => {
                 if (!isPublicView) {
                     const profileData = data.data.profile;
                     setFormData({
+                        name: profileData?.user?.name || user?.name || '',
+                        username: profileData?.user?.username || user?.username || '',
                         bio: profileData?.bio || '',
                         title: profileData?.title || '',
                         locations: profileData?.locations || '',
@@ -139,6 +143,8 @@ const Profile: React.FC = () => {
             setLoading(true);
 
             const payload = new FormData();
+            payload.append('name', formData.name);
+            payload.append('username', formData.username);
             payload.append('bio', formData.bio);
             payload.append('title', formData.title);
             payload.append('locations', formData.locations);
@@ -161,9 +167,8 @@ const Profile: React.FC = () => {
             const updatedProfile = responseData.data.profile;
             setProfile(updatedProfile);
 
-            // Sync user avatar if it was updated
-            if (updatedProfile.user && updatedProfile.user.avatar) {
-                // Update localStorage and reload to sync context
+            // Sync user info (name, username, avatar) if it was updated
+            if (updatedProfile.user) {
                 localStorage.setItem('queryport_user', JSON.stringify(updatedProfile.user));
                 window.location.reload();
             }
@@ -340,6 +345,20 @@ const Profile: React.FC = () => {
                                         <span>Upload New Avatar</span>
                                     </label>
                                 </div>
+                                <input
+                                    type="text"
+                                    placeholder="Full Name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full bg-black border border-white/20 rounded p-2 text-white focus:border-white focus:outline-none transition-colors"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Username"
+                                    value={formData.username}
+                                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                    className="w-full bg-black border border-white/20 rounded p-2 text-white focus:border-white focus:outline-none transition-colors"
+                                />
                                 <input
                                     type="text"
                                     placeholder="Professional Title"

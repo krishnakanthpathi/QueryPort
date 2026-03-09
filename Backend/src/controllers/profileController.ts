@@ -169,7 +169,7 @@ export const updateProfile = catchAsync(async (req: Request, res: Response, next
 
     // Build profile object
     const profileFields: any = {};
-    const { bio, title, socialLinks, resume, locations, codingProfiles } = req.body; // Removed avatar from here as it might come from file
+    const { bio, title, socialLinks, resume, locations, codingProfiles, name, username } = req.body; // Removed avatar from here as it might come from file
 
     if (bio) profileFields.bio = bio;
     if (title) profileFields.title = title;
@@ -201,7 +201,7 @@ export const updateProfile = catchAsync(async (req: Request, res: Response, next
         }
     }
 
-    // Handle File Upload
+    // Handle File Upload & basic user fields (name/username/avatar)
     if (req.file) {
         try {
             const result: any = await new Promise((resolve, reject) => {
@@ -225,6 +225,22 @@ export const updateProfile = catchAsync(async (req: Request, res: Response, next
         await User.findByIdAndUpdate(userId, { avatar: req.body.avatar });
     }
 
+    // Update basic user info (name, username) if provided
+    if (name || username) {
+        const userUpdate: any = {};
+        if (name) userUpdate.name = name;
+        if (username) userUpdate.username = username.toLowerCase().trim();
+
+        try {
+            await User.findByIdAndUpdate(userId, userUpdate, { runValidators: true });
+        } catch (error: any) {
+            // Handle duplicate username or validation errors
+            if (error.code === 11000) {
+                return next(new AppError('Username already in use', 400));
+            }
+            return next(new AppError('Failed to update user information', 400));
+        }
+    }
 
     let profile = await Profile.findOne({ user: userId } as any);
 
