@@ -25,9 +25,10 @@ const SectionTitle: React.FC<TitleProps> = ({ title, icon, username, link }) => 
 
 interface Props {
     profiles: NonNullable<Profile['codingProfiles']>;
+    isOwner: boolean;
 }
 
-const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
+const CodingHeatmaps: React.FC<Props> = ({ profiles, isOwner }) => {
     // Generate years list (e.g., current year down to 2015)
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: currentYear - 2014 }, (_, i) => currentYear - i);
@@ -679,11 +680,15 @@ const CodingHeatmaps: React.FC<Props> = ({ profiles }) => {
                         </div>
                         <h3 className="text-xl font-bold mb-2">No coding profiles added</h3>
                         <p className="text-gray-400 max-w-md mx-auto mb-6">
-                            Connect your GitHub, LeetCode, Codeforces, and other coding profiles to showcase your activity heatmaps and stats here.
+                            {isOwner
+                                ? 'Connect your GitHub, LeetCode, Codeforces, and other coding profiles to showcase your activity heatmaps and stats here.'
+                                : 'This user has not added any coding profiles yet.'}
                         </p>
-                        <div className="text-sm text-gray-500 bg-white/5 inline-block px-4 py-2 rounded-lg border border-white/10">
-                            Click <span className="text-white font-medium">Edit Profile</span> to add your usernames
-                        </div>
+                        {isOwner && (
+                            <div className="text-sm text-gray-500 bg-white/5 inline-block px-4 py-2 rounded-lg border border-white/10">
+                                Click <span className="text-white font-medium">Edit Profile</span> to add your usernames
+                            </div>
+                        )}
                     </div>
                 )
             }

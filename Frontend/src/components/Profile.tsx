@@ -589,7 +589,10 @@ const Profile: React.FC = () => {
                 {!isEditing && (
                     <div className="w-full mt-8 space-y-12">
                         {/* Coding Heatmaps */}
-                        <CodingHeatmaps profiles={profile?.codingProfiles || formData.codingProfiles} />
+                        <CodingHeatmaps
+                            profiles={profile?.codingProfiles || formData.codingProfiles}
+                            isOwner={!isPublicView}
+                        />
 
                         {/* Projects Section - Only Show in Public View or if we want it in private too (Plan said public) */}
                         {isPublicView && projects.length > 0 && (
