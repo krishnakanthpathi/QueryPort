@@ -13,6 +13,7 @@ const Skills: React.FC = () => {
     const [userSkills, setUserSkills] = useState<Skill[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -44,6 +45,7 @@ const Skills: React.FC = () => {
     const fetchSkills = async () => {
         try {
             setLoading(true);
+            setError('');
 
             if (activeTab === 'my' && !user) {
                 setUserSkills([]);
@@ -51,17 +53,39 @@ const Skills: React.FC = () => {
                 return;
             }
 
-            // Fetch All Skills
+            // Fetch All Skills (global catalog)
             if (activeTab === 'all') {
                 const allRes = await api.get(`/skills?page=${page}&limit=12`);
-                setSkills(allRes.data.skills);
-                setTotalPages(allRes.totalPages || 1);
+                const payload: any = allRes;
+
+                // Support both new and any legacy response shapes
+                const skillsData: Skill[] =
+                    payload?.data?.skills ||
+                    payload?.skills ||
+                    payload?.data ||
+                    [];
+
+                const totalPagesFromApi: number =
+                    payload?.totalPages ||
+                    payload?.data?.totalPages ||
+                    1;
+
+                setSkills(skillsData);
+                setTotalPages(totalPagesFromApi);
             }
 
-            // Fetch My Skills
+            // Fetch My Skills (skills attached to profile)
             if (user) {
                 const myRes = await api.get('/skills/my-skills');
-                setUserSkills(myRes.data.skills);
+                const payload: any = myRes;
+
+                const mySkillsData: Skill[] =
+                    payload?.data?.skills ||
+                    payload?.skills ||
+                    payload?.data ||
+                    [];
+
+                setUserSkills(mySkillsData);
             }
         } catch (err: any) {
             console.error(err);
@@ -81,6 +105,8 @@ const Skills: React.FC = () => {
 
     const handleSave = () => {
         fetchSkills();
+        setSuccess('Skill added to your profile.');
+        setTimeout(() => setSuccess(''), 3000);
     };
 
     const handleAddToProfile = async (skillId: string) => {
@@ -88,6 +114,8 @@ const Skills: React.FC = () => {
             await api.post('/skills/add-to-profile', { skillId });
             // Refresh to update "My Skills" list and UI state
             fetchSkills();
+            setSuccess('Skill added to your profile.');
+            setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
             alert(err.message || 'Failed to add skill');
         }
@@ -101,6 +129,18 @@ const Skills: React.FC = () => {
             setUserSkills(prev => prev.filter(s => s._id !== skillId));
         } catch (err: any) {
             alert(err.message || 'Failed to remove skill');
+        }
+    };
+
+    const handleDeleteSkill = async (skillId: string) => {
+        if (!window.confirm("Delete this skill from the global catalog? This removes it from all profiles.")) return;
+        try {
+            await api.delete(`/skills/${skillId}`);
+            await fetchSkills();
+            setSuccess('Skill deleted successfully.');
+            setTimeout(() => setSuccess(''), 3000);
+        } catch (err: any) {
+            alert(err.message || 'Failed to delete skill');
         }
     };
 
@@ -156,6 +196,9 @@ const Skills: React.FC = () => {
                 </div>
 
                 {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+                {success && !error && (
+                    <div className="text-green-400 text-center mb-4">{success}</div>
+                )}
 
                 {!user ? (
                     <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
@@ -177,7 +220,14 @@ const Skills: React.FC = () => {
                         ) : (
                             <>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                    {displayedSkills.map((skill) => (
+                                    {displayedSkills.map((skill) => {
+                                        const createdById =
+                                            typeof skill.createdBy === 'string'
+                                                ? skill.createdBy
+                                                : (skill.createdBy as any)?._id;
+                                        const isOwner = user && createdById === user._id;
+
+                                        return (
                                         <div key={skill._id} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/30 transition-all duration-300 group hover:-translate-y-1 flex flex-col items-center text-center relative">
                                             <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center mb-4 p-2">
                                                 <img
@@ -214,8 +264,17 @@ const Skills: React.FC = () => {
                                                     <Trash2 size={14} />
                                                 </button>
                                             )}
+                                            {activeTab === 'all' && isOwner && (
+                                                <button
+                                                    onClick={() => handleDeleteSkill(skill._id)}
+                                                    className="absolute top-4 right-4 p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Delete from global catalog"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
                                         </div>
-                                    ))}
+                                    )})}
 
                                     {displayedSkills.length === 0 && (
                                         <div className="col-span-full text-center py-20 text-gray-500">

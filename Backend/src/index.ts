@@ -24,7 +24,8 @@ app.use('/api', limiter);
 app.use(compression());
 
 app.use(cors({ origin: '*' }));
-app.use(express.json({ limit: '10kb' }));
+// Increase JSON body size limit to better support typical payloads
+app.use(express.json({ limit: '1mb' }));
 
 // Routes
 app.use('/api/v1', routes);

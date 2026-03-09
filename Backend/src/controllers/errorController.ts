@@ -51,6 +51,11 @@ const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFun
             error = new AppError(message, 400);
         }
 
+        // Handle body size limit errors from express.json
+        if (err.type === 'entity.too.large' || err.statusCode === 413) {
+            error = new AppError('Request body too large', 413);
+        }
+
         // Handle Mongoose Validation Error
         if (err.name === 'ValidationError') {
             const errors = Object.values(err.errors).map((el: any) => el.message);

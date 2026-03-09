@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { api } from '../lib/api';
 import { X, Save } from 'lucide-react';
@@ -17,7 +16,7 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
         name: '',
         image: '',
     });
-
+    const [scope, setScope] = useState<'global' | 'user'>('global');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -26,13 +25,14 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
             name: '',
             image: '',
         });
+        setScope('global');
 
         if (fileInputRef.current) fileInputRef.current.value = '';
         setError('');
     };
 
     const handleSave = async () => {
-        if (!formData.name) {
+        if (!formData.name.trim()) {
             setError('Skill name is required');
             return;
         }
@@ -41,46 +41,20 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
             setLoading(true);
             setError('');
 
-            // 1. Create or Get Skill
-            const skillData = new FormData();
-            skillData.append('name', formData.name);
-
-            // Handle image upload logic similar to other modals
-            // If imageFile is present, append it. 
-            // Note: simplistic handling here, assuming backend handles file upload if 'image' is file
-            // But my backend controller just takes req.body.image currently? 
-            // Wait, I didn't implement file upload in backend controller for skills.
-            // I used `req.body` directly. The existing controllers use `req.body`.
-            // The other modals send FormData.
-            // Let's assume for now I send JSON with image URL or base64. 
-            // But wait, existing controllers (e.g. Project) handle image upload? 
-            // Let's check a controller. 
-
-            // Actually, for this task, I'll stick to URL input or just passing text for now to match my backend implementation.
-            // My backend `createSkill` expects `req.body.name` and `req.body.image`.
-            // I'll manually handle image upload if I had time, but for now let's assume URL input is primary 
-            // OR checks if I need to implement file upload. 
-            // The user request said "accept the skill image", which usually implies upload. 
-            // But my backend code `const { name, image } = req.body;` implies JSON body. 
-            // So I will send JSON. 
-            // I will only support URL input for now in this Modal to match my backend.
-
+            // Single call: find-or-create skill and attach to profile
             const payload = {
-                name: formData.name,
-                image: formData.image || "https://cdn-icons-png.flaticon.com/512/3665/3665975.png"
+                name: formData.name.trim(),
+                image: formData.image || 'https://cdn-icons-png.flaticon.com/512/3665/3665975.png',
+                scope,
             };
 
-            const createRes = await api.post('/skills', payload);
-            const skillId = createRes.data.skill._id;
-
-            // 2. Add to Profile
-            await api.post('/skills/add-to-profile', { skillId });
+            await api.post('/skills/add-to-profile', payload);
 
             onSave();
             onClose();
             resetForm();
         } catch (err: any) {
-            setError(err.message || 'Failed to save skill');
+            setError(err?.response?.data?.message || err.message || 'Failed to save skill');
         } finally {
             setLoading(false);
         }
@@ -113,6 +87,7 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">Icon URL (Optional)</label>
                             <input
+                                ref={fileInputRef}
                                 value={formData.image}
                                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                                 className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-white/40 focus:outline-none transition-colors"
@@ -122,9 +97,47 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
 
                         {formData.image && (
                             <div className="flex justify-center">
-                                <img src={formData.image} alt="Preview" className="w-16 h-16 object-contain rounded-lg border border-white/10 bg-white/5 p-2" />
+                                <img
+                                    src={formData.image}
+                                    alt="Preview"
+                                    className="w-16 h-16 object-contain rounded-lg border border-white/10 bg-white/5 p-2"
+                                />
                             </div>
                         )}
+
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-2">Visibility</label>
+                            <div className="flex items-center gap-3 text-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setScope('global')}
+                                    className={`flex-1 px-3 py-2 rounded-lg border text-left transition-colors ${
+                                        scope === 'global'
+                                            ? 'border-white/60 bg-white/10 text-white'
+                                            : 'border-white/10 text-gray-300 hover:border-white/30'
+                                    }`}
+                                >
+                                    <span className="font-medium block">Global skill</span>
+                                    <span className="text-xs text-gray-400 block mt-1">
+                                        Visible in the shared skills catalog
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setScope('user')}
+                                    className={`flex-1 px-3 py-2 rounded-lg border text-left transition-colors ${
+                                        scope === 'user'
+                                            ? 'border-white/60 bg-white/10 text-white'
+                                            : 'border-white/10 text-gray-300 hover:border-white/30'
+                                    }`}
+                                >
+                                    <span className="font-medium block">My custom skill</span>
+                                    <span className="text-xs text-gray-400 block mt-1">
+                                        Only attached to your profile
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     {error && (
@@ -136,9 +149,14 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
                     <div className="flex gap-3">
                         <button
                             onClick={handleSave}
-                            className="flex-1 bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors flex justify-center items-center gap-2"
+                            disabled={loading}
+                            className="flex-1 bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {loading ? <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <Save size={18} />}
+                            {loading ? (
+                                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <Save size={18} />
+                            )}
                             Add Skill
                         </button>
                     </div>
@@ -149,3 +167,4 @@ const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave }) => {
 };
 
 export default SkillModal;
+
