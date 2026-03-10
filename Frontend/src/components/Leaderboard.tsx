@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
-import { Trophy, RefreshCw, ChevronLeft, ChevronRight, Download, Search } from 'lucide-react';
+import { Trophy, RefreshCw, ChevronLeft, ChevronRight, Download, Search, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from './Toast';
 
@@ -160,7 +160,14 @@ const Leaderboard: React.FC = () => {
                         <p className="text-gray-400 mt-1">Top performers across the platform</p>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 flex-wrap">
+                        <Link
+                            to="/leaderboard/report"
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-xl transition-colors"
+                        >
+                            <FileSpreadsheet size={16} />
+                            Advanced report
+                        </Link>
                         <button
                             onClick={handleDownload}
                             disabled={downloading}

@@ -13,6 +13,7 @@ import Skills from './components/Skills';
 import Certifications from "./components/Certifications";
 import CertificationView from "./components/CertificationView";
 import Leaderboard from "./components/Leaderboard";
+import AdvancedReport from "./components/AdvancedReport";
 import DocsLayout from "./components/Docs/DocsLayout";
 import DocsIntro from "./components/Docs/DocsIntro";
 import DocsProfile from "./components/Docs/DocsProfile";
@@ -100,6 +101,7 @@ const App: React.FC = () => {
           <Route path="/certifications" element={<Certifications />} />
           <Route path="/certifications/:id" element={<CertificationView />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/leaderboard/report" element={<AdvancedReport />} />
 
           <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
           <Route path="/u/:username" element={<Profile />} />
