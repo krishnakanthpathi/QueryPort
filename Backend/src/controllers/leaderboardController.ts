@@ -80,109 +80,109 @@ const fetchHackerRankStats = async (username: string) => {
     }
 };
 
+// --- Sync logic (reusable for one user; used by API and weekly daemon) ---
+
+/** Sync leaderboard stats for a single user by userId. Returns updated stats and type, or null if no profile. */
+export const syncStatsForUser = async (userId: mongoose.Types.ObjectId): Promise<{ stats: any; type: string } | null> => {
+    const profile = await Profile.findOne({ user: userId });
+    if (!profile) return null;
+
+    const projectStats = await Project.aggregate([
+        { $match: { userId: profile.user } },
+        { $group: { _id: null, totalLikes: { $sum: '$likes' } } }
+    ]);
+    const totalLikes = projectStats.length > 0 ? projectStats[0].totalLikes : 0;
+
+    const p = profile as any;
+    const codingProfiles = p.codingProfiles || {};
+    const currentStats = p.stats ? JSON.parse(JSON.stringify(p.stats)) : {};
+
+    let leetcodeData = { solved: 0 };
+    if (codingProfiles.leetcode) {
+        leetcodeData = await fetchLeetCodeStats(codingProfiles.leetcode);
+    }
+    let codeforcesData = { rating: 0, maxRating: 0 };
+    if (codingProfiles.codeforces) {
+        codeforcesData = await fetchCodeforcesStats(codingProfiles.codeforces);
+    }
+    let hackerrankData = { badges: 0, points: 0 };
+    if (codingProfiles.hackerrank) {
+        hackerrankData = await fetchHackerRankStats(codingProfiles.hackerrank);
+    }
+
+    const educationList = await Education.find({ userId }).sort({ endDate: -1, startDate: -1 });
+    let cgpa = 0;
+    let userType = 'Student';
+    if (educationList.length > 0 && educationList[0]) {
+        const recentEdu = educationList[0];
+        if (recentEdu.score) {
+            const parsed = parseFloat(recentEdu.score);
+            if (!isNaN(parsed)) cgpa = parsed;
+        } else if (recentEdu.semesters?.length > 0) {
+            const lastSem = recentEdu.semesters[recentEdu.semesters.length - 1];
+            if (lastSem?.cgpa) {
+                const parsedSemCgpa = parseFloat(lastSem.cgpa);
+                if (!isNaN(parsedSemCgpa)) cgpa = parsedSemCgpa;
+            }
+        }
+        const isStudent = educationList.some(edu => edu.current);
+        userType = isStudent ? 'Student' : 'Professional';
+    } else {
+        userType = 'Other';
+    }
+
+    const newStats = {
+        totalLikes,
+        leetcode: { ...(currentStats.leetcode || {}), solved: leetcodeData.solved },
+        codeforces: { ...(currentStats.codeforces || {}), ...codeforcesData },
+        hackerrank: { ...(currentStats.hackerrank || {}), badges: hackerrankData.badges },
+        github: currentStats.github || { contributions: 0 },
+        cgpa
+    };
+    profile.set('stats', newStats);
+    profile.set('type', userType);
+    await profile.save();
+    return { stats: newStats, type: userType };
+};
+
+/** Delay helper for rate limiting external APIs. */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/** Sync leaderboard stats for all users. Used by the weekly cron. Delay between users to avoid rate limits. */
+export const syncAllLeaderboardStats = async (options?: { delayBetweenUsersMs?: number }): Promise<{ synced: number; failed: number }> => {
+    const delayMs = options?.delayBetweenUsersMs ?? 2000;
+    const profiles = await Profile.find({}).select('user').lean();
+    let synced = 0;
+    let failed = 0;
+    for (const doc of profiles) {
+        const userId = doc.user as mongoose.Types.ObjectId;
+        if (!userId) continue;
+        try {
+            const result = await syncStatsForUser(userId);
+            if (result) synced++;
+        } catch (err) {
+            failed++;
+            console.error(`[Leaderboard sync] Failed for user ${userId}:`, err);
+        }
+        await delay(delayMs);
+    }
+    console.log(`[Leaderboard sync] Completed: ${synced} synced, ${failed} failed.`);
+    return { synced, failed };
+};
+
 // --- Controllers ---
 
 export const syncStats = async (req: Request, res: Response) => {
-    // Expect user to be attached to req (middleware)
     const userId = (req as any).user?._id || (req as any).user?.id;
-
     if (!userId) {
         return res.status(401).json({ status: 'fail', message: 'Unauthorized' });
     }
-
     try {
-        // 1. Get Profile
-        const profile = await Profile.findOne({ user: userId });
-        if (!profile) {
+        const result = await syncStatsForUser(userId);
+        if (!result) {
             return res.status(404).json({ status: 'fail', message: 'Profile not found' });
         }
-
-        // 2. Fetch Project Likes
-        const projectStats = await Project.aggregate([
-            { $match: { userId: profile.user } },
-            { $group: { _id: null, totalLikes: { $sum: '$likes' } } }
-        ]);
-        const totalLikes = projectStats.length > 0 ? projectStats[0].totalLikes : 0;
-
-        // 3. Fetch External Stats
-        const p = profile as any;
-        const codingProfiles = p.codingProfiles || {};
-
-        // Safely extract existing stats
-        const currentStats = p.stats ? JSON.parse(JSON.stringify(p.stats)) : {};
-
-        let leetcodeData = { solved: 0 };
-        if (codingProfiles.leetcode) {
-            leetcodeData = await fetchLeetCodeStats(codingProfiles.leetcode);
-        }
-
-        let codeforcesData = { rating: 0, maxRating: 0 };
-        if (codingProfiles.codeforces) {
-            codeforcesData = await fetchCodeforcesStats(codingProfiles.codeforces);
-        }
-
-        let hackerrankData = { badges: 0, points: 0 };
-        if (codingProfiles.hackerrank) {
-            hackerrankData = await fetchHackerRankStats(codingProfiles.hackerrank);
-        }
-
-        // 4. Fetch Education for CGPA & User Type
-        const educationList = await Education.find({ userId: userId }).sort({ endDate: -1, startDate: -1 }); // Most recent first
-        let cgpa = 0;
-        let userType = 'Student'; // Default or fallback
-
-        if (educationList.length > 0 && educationList[0]) {
-            const recentEdu = educationList[0];
-
-            // Try to extract CGPA
-            if (recentEdu.score) {
-                const parsed = parseFloat(recentEdu.score);
-                if (!isNaN(parsed)) {
-                    cgpa = parsed;
-                }
-            } else if (recentEdu.semesters && recentEdu.semesters.length > 0) {
-                // Try to get max/latest cgpa from semesters if overall score is missing?
-                // Or just leave as 0 if not explicitly in score.
-                // Let's stick to overall score for now as per plan, or simpler logic.
-                // Actually, let's try to check the last semester's CGPA if available
-                const lastSem = recentEdu.semesters[recentEdu.semesters.length - 1];
-                if (lastSem && lastSem.cgpa) {
-                    const parsedSemCgpa = parseFloat(lastSem.cgpa);
-                    if (!isNaN(parsedSemCgpa)) cgpa = parsedSemCgpa;
-                }
-            }
-
-            // Infer Type
-            // If any education is marked current -> Student
-            const isStudent = educationList.some(edu => edu.current);
-            userType = isStudent ? 'Student' : 'Professional';
-            // Logic can be refined (e.g. Alumni if no current education but has a degree)
-            // Sticking to simple Student vs Professional for now based on 'current' flag
-        } else {
-            userType = 'Other';
-        }
-
-
-        // 5. Update Profile
-        const newStats = {
-            totalLikes,
-            leetcode: { ...(currentStats.leetcode || {}), solved: leetcodeData.solved },
-            codeforces: { ...(currentStats.codeforces || {}), ...codeforcesData },
-            hackerrank: { ...(currentStats.hackerrank || {}), badges: hackerrankData.badges },
-            github: currentStats.github || { contributions: 0 },
-            cgpa
-        };
-
-        profile.set('stats', newStats);
-        profile.set('type', userType);
-
-        await profile.save();
-
-        res.status(200).json({
-            status: 'success',
-            data: { stats: newStats, type: userType }
-        });
-
+        res.status(200).json({ status: 'success', data: result });
     } catch (error: any) {
         console.error('Sync Stats Error:', error);
         res.status(500).json({ status: 'error', message: error.message });

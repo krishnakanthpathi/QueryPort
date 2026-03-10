@@ -7,10 +7,9 @@ import routes from './routes/index.js';
 import globalErrorHandler from './controllers/errorController.js';
 import compression from 'compression';
 import { rateLimit } from 'express-rate-limit';
+import { startLeaderboardCron } from './cron/leaderboardCron.js';
 
 dotenv.config();
-
-connectDB();
 
 const app = express();
 
@@ -50,10 +49,22 @@ app.use((req, res, next) => {
 // Global Error Handler
 app.use(globalErrorHandler);
 
-// Start the server
+// Start the server and weekly leaderboard sync daemon
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+const DISABLE_LEADERBOARD_CRON = process.env.DISABLE_LEADERBOARD_CRON === '1' || process.env.DISABLE_LEADERBOARD_CRON === 'true';
+
+async function start() {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    if (!DISABLE_LEADERBOARD_CRON) {
+      startLeaderboardCron();
+    } else {
+      console.log('[Leaderboard cron] Disabled via DISABLE_LEADERBOARD_CRON');
+    }
+  });
+}
+
+start();
 
 export default app;
