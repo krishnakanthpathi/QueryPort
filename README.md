@@ -15,8 +15,11 @@
 - **Skills Management**: Add and manage skills from a shared global pool
 - **Achievements & Certifications**:  Highlight your awards and professional credentials
 - **Profile Customization**: Manage your bio, titles, location, resume, and social presence
+- **Leaderboard**: Rank users by likes, CGPA, LeetCode, Codeforces, HackerRank with sort and filters
+- **Advanced Report Download**: Filter by stats, certifications, education, experience, achievements, projects; export CSV (up to 1000 rows)
+- **Weekly Leaderboard Sync**: Daemon runs every Sunday at 3:00 AM to refresh all users’ stats (CGPA, coding profiles, project likes)
 - **Authentication**: Secure signup/login with Email & Password and Google OAuth
-- **Public Profiles**: Share your portfolio via unique URLs (`/profile/u/:username` or `/profile/:userId`)
+- **Public Profiles**: Share your portfolio via unique URLs (`/u/:username`)
 - **Real-time Updates**: Dynamic content management with instant updates
 - **Responsive Design**: Beautiful UI that works on all devices
 
@@ -74,6 +77,8 @@ GOOGLE_CLIENT_ID=your_google_client_id
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+# Optional: set to 1 or true to disable the weekly leaderboard sync cron
+# DISABLE_LEADERBOARD_CRON=0
 ```
 
 Start the backend server:
@@ -113,6 +118,7 @@ QueryPort/
 ├── Backend/
 │   ├── src/
 │   │   ├── controllers/      # Request handlers
+│   │   ├── cron/             # Scheduled jobs (e.g. weekly leaderboard sync)
 │   │   ├── models/           # MongoDB schemas
 │   │   ├── routes/           # API routes
 │   │   ├── utils/            # Helper functions
@@ -122,7 +128,7 @@ QueryPort/
 │
 ├── Frontend/
 │   ├── src/
-│   │   ├── components/       # React components
+│   │   ├── components/       # React components (Leaderboard, AdvancedReport, etc.)
 │   │   ├── context/          # Context providers
 │   │   ├── lib/              # Utilities and API client
 │   │   ├── App.tsx           # Main app component
@@ -217,6 +223,15 @@ QueryPort/
 | `GET` | `/` | Get all global skills | Public |
 | `POST` | `/` | Create new skill | Protected |
 
+### 🏅 Leaderboard (`/api/v1/leaderboard`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| `GET` | `/` | Get leaderboard with filters & sort | Public |
+| `POST` | `/sync` | Sync your own stats (CGPA, LeetCode, etc.) | Protected |
+
+**Query params for `GET /leaderboard`:** `page`, `limit`, `sortBy` (e.g. `cgpa:desc`, `leetcode:desc`), `order`, `type` (Student \| Professional \| Other \| All), `search`; optional filters: `minCgpa`, `maxCgpa`, `minLeetcode`, `maxLeetcode`, `minCodeforces`, `maxCodeforces`, `minHackerrank`, `maxHackerrank`, `minLikes`, `credentialId`, `issuingOrganization`, `certificationName`, `institution`, `degree`, `fieldOfStudy`, `currentStudent`, `company`, `role`, `hasCurrentJob`, `achievementOrganization`, `achievementTitle`, `projectCategory`, `minPublishedProjects`, `hasResume`, `hasLocation`, `skillId`. Use `export=1` with higher `limit` (max 1000) for report exports.
+
 ## 🎨 Features in Detail
 
 ### Project Management
@@ -242,11 +257,12 @@ QueryPort/
 
 ## 🗺 Roadmap
 
+- [x] Advanced report download (filter by stats, certs, education, experience; CSV export)
+- [x] Weekly leaderboard sync daemon (cron)
 - [ ] Add comments system for projects
 - [ ] Implement project sharing functionality
 - [ ] Add search and filter capabilities
 - [ ] Integrate analytics dashboard
-- [ ] Add export portfolio feature
 - [ ] Implement dark/light mode toggle
 - [ ] Add project collaboration features
 - [ ] Mobile application

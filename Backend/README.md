@@ -1,6 +1,6 @@
 # QueryPort Backend
 
-This is the backend for the QueryPort platform, built with Node.js, Express, and MongoDB. It serves as a headless content management system for developer portfolios.
+This is the backend for the QueryPort platform, built with Node.js, Express, and MongoDB. It serves as a headless content management system for developer portfolios. It includes a **weekly leaderboard sync daemon** that refreshes all users’ stats (CGPA, LeetCode, Codeforces, HackerRank, project likes) every Sunday at 3:00 AM.
 
 ## 🛠 Tech Stack
 - **Runtime**: Node.js
@@ -8,6 +8,7 @@ This is the backend for the QueryPort platform, built with Node.js, Express, and
 - **Language**: TypeScript
 - **Database**: MongoDB (via Mongoose)
 - **Authentication**: JWT & Google OAuth
+- **Scheduling**: node-cron (weekly leaderboard sync)
 
 ## 🚀 Getting Started
 
@@ -30,6 +31,8 @@ This is the backend for the QueryPort platform, built with Node.js, Express, and
    JWT_SECRET=your_jwt_secret
    JWT_EXPIRES_IN=5d
    GOOGLE_CLIENT_ID=your_google_client_id
+   # Optional: set to 1 or true to disable the weekly leaderboard sync cron
+   # DISABLE_LEADERBOARD_CRON=0
    ```
 
 ### Running the Server
@@ -79,6 +82,23 @@ This is the backend for the QueryPort platform, built with Node.js, Express, and
     }
   ]
 }
+```
+
+### 🏅 Leaderboard (`/api/v1/leaderboard`)
+
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/` | Get leaderboard (paginated, filterable, sortable) | **Public** |
+| `POST` | `/sync` | Sync current user’s stats (CGPA, LeetCode, Codeforces, HackerRank, likes) | **Protected** |
+
+**GET /leaderboard** supports many query params: `page`, `limit`, `sortBy` (e.g. `cgpa:desc`, `leetcode:desc`), `type`, `search`, and optional filters (stats ranges, certification, education, experience, achievement, project, profile). Use `export=1` with `limit` up to 1000 for report-style exports.
+
+### ⏰ Weekly Leaderboard Sync Daemon
+
+A cron job runs **every Sunday at 3:00 AM** (server local time) to sync leaderboard stats for all users (project likes, LeetCode, Codeforces, HackerRank, CGPA from education, profile type). To disable it, set in `.env`:
+
+```env
+DISABLE_LEADERBOARD_CRON=1
 ```
 
 ## ⚠️ Important Notes

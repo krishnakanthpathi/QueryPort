@@ -1,6 +1,6 @@
 # QueryPort Frontend
 
-This is the frontend application for **QueryPort**, built with React, TypeScript, and Vite. It consumes the QueryPort API to manage and display portfolio data.
+This is the frontend application for **QueryPort**, built with React, TypeScript, and Vite. It consumes the QueryPort API to manage and display portfolio data. It includes a **Leaderboard** (sortable by likes, CGPA, LeetCode, Codeforces, HackerRank) and an **Advanced Report** page for filtered CSV exports.
 
 ## 🛠 Tech Stack
 -   **Framework**: React 18
@@ -33,3 +33,8 @@ This is the frontend application for **QueryPort**, built with React, TypeScript
     ```bash
     npm run build
     ```
+
+## 📄 Key Pages
+
+- **Leaderboard** (`/leaderboard`): Ranked list with sort by likes, CGPA, LeetCode, Codeforces, HackerRank; type and search filters; quick “Export CSV”.
+- **Advanced Report** (`/leaderboard/report`): Filter by stats ranges, certifications, education, experience, achievements, projects, profile; choose CSV columns; download report (up to 1000 rows).
