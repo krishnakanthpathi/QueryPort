@@ -27,9 +27,20 @@ const sendErrorProd = (err: AppError, res: Response) => {
     }
 };
 
+const SESSION_EXPIRED_MESSAGE = 'Session expired or invalid. Please log in again.';
+
 const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
+
+    // JWT expired or invalid → 401 so frontend can auto-logout
+    if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
+        err.statusCode = 401;
+        err.status = 'fail';
+        if (process.env.NODE_ENV !== 'development') {
+            err.message = SESSION_EXPIRED_MESSAGE;
+        }
+    }
 
     if (process.env.NODE_ENV === 'development') {
         sendErrorDev(err, res);

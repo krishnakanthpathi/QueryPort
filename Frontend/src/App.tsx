@@ -23,6 +23,7 @@ import DocsLeaderboard from "./components/Docs/DocsLeaderboard";
 
 import { useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toast";
+import SessionExpiryHandler from "./components/SessionExpiryHandler";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const Home = () => {
@@ -88,6 +89,7 @@ const App: React.FC = () => {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
       <ToastProvider>
+        <SessionExpiryHandler />
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />

@@ -1,5 +1,15 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8888/api/v1';
 
+export const SESSION_EXPIRED_EVENT = 'queryport:session-expired';
+
+function handleResponseError(response: Response, body: { message?: string } | null): never {
+    if (response.status === 401) {
+        window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
+    }
+    const message = body?.message || (response.status === 401 ? 'Session expired. Please log in again.' : 'API Error');
+    throw new Error(message);
+}
+
 export const api = {
     get: async (endpoint: string) => {
         const token = localStorage.getItem('queryport_token');
@@ -11,7 +21,13 @@ export const api = {
             },
         });
         if (!response.ok) {
-            throw new Error(await response.text());
+            let body: { message?: string } | null = null;
+            try {
+                body = await response.json();
+            } catch {
+                // ignore
+            }
+            handleResponseError(response, body);
         }
         return response.json();
     },
@@ -34,7 +50,7 @@ export const api = {
 
         const responseData = await response.json();
         if (!response.ok) {
-            throw new Error(responseData.message || 'API Error');
+            handleResponseError(response, responseData);
         }
         return responseData;
     },
@@ -57,7 +73,7 @@ export const api = {
 
         const responseData = await response.json();
         if (!response.ok) {
-            throw new Error(responseData.message || 'API Error');
+            handleResponseError(response, responseData);
         }
         return responseData;
     },
@@ -80,7 +96,7 @@ export const api = {
 
         const responseData = await response.json();
         if (!response.ok) {
-            throw new Error(responseData.message || 'API Error');
+            handleResponseError(response, responseData);
         }
         return responseData;
     },
