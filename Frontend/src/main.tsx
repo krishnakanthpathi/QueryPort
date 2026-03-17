@@ -4,7 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext'
 import { BrowserRouter } from 'react-router-dom'
-
+import { Analytics } from "@vercel/analytics/react"
 
 
 createRoot(document.getElementById('root')!).render(
@@ -14,5 +14,6 @@ createRoot(document.getElementById('root')!).render(
         <App />
       </AuthProvider>
     </BrowserRouter>
+    <Analytics />
   </StrictMode>,
 )
